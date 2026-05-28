@@ -881,8 +881,23 @@ window.addEventListener('DOMContentLoaded',()=>{
   fetchGifs();
   initPasteHandler();
 });
-window.addEventListener('beforeunload',()=>{
-  saveHistoryToSupabase();
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){
+    saveLocalMessages();
+    saveHistoryToSupabase();
+  }
+});
+window.addEventListener('beforeunload', e=>{
+  // sync fire-and-forget via sendBeacon
+  const payload = JSON.stringify({
+    room: myRoom,
+    data: JSON.stringify(history.map(h=>({...h,mediaUrl:undefined}))),
+    updated_at: new Date().toISOString()
+  });
+  navigator.sendBeacon(
+    `${SB_URL}/rest/v1/meshchat_history?on_conflict=room`,
+    new Blob([payload],{type:'application/json'})
+  );
   peers.forEach((_,pid)=>dropPeer(pid,false));
 });
 
@@ -1323,9 +1338,12 @@ function dropPeer(peerId,notify=true){
   try{p.dc&&p.dc.close();p.pc&&p.pc.close();}catch(_){}
   const name=p.name;
   peers.delete(peerId);
-  // onlineUsers.delete(peerId);
+  onlineUsers.delete(peerId);
   updateSuperPeer();renderSidebar();updateCounts();updateConnQuality();
   if(notify)sysMsg(name+' disconnected');
+
+  if(peers.size===0) saveHistoryToSupabase();
+
 }
 
 // DC MESSAGE HANDLER
@@ -1428,7 +1446,10 @@ async function sendMsg(){
 }
 function debouncedSaveHistory(){
   clearTimeout(saveHistoryTimer);
-  saveHistoryTimer=setTimeout(()=>{saveLocalMessages();if(peers.size===0)saveHistoryToSupabase();},2000);
+  saveHistoryTimer=setTimeout(()=>{
+    saveLocalMessages();
+    if(peers.size===0) saveHistoryToSupabase();
+  },3000);
 }
 function broadcastChat(m){
   if(!peers.size)return false;
@@ -1481,8 +1502,20 @@ function loadLocalMessages(){
   }catch(_){}
 }
 async function saveHistoryToSupabase(){
-  if(!myRoom||!history.length)return;
-  try{await sb.from(SB_TABLE_HIST).upsert({room:myRoom,data:JSON.stringify(history.map(h=>({...h,mediaUrl:undefined}))),updated_at:new Date().toISOString()},{onConflict:'room'});}catch(_){}
+  if(!myRoom||!myId) return;
+  const toSave=history.filter(h=>h.type!=='image'||!h.mediaUrl); 
+  // images with blob urls cant be saved, strip mediaUrl
+  const clean=history.map(h=>({...h,mediaUrl:undefined}));
+  if(!clean.length) return;
+
+  const {error}=await sb.from(SB_TABLE_HIST).upsert({
+    room: myRoom,
+    data: JSON.stringify(clean),
+    updated_at: new Date().toISOString()
+  },{onConflict:'room'});
+
+  if(error) console.error('saveHistoryToSupabase failed:',error);
+  else console.log('history saved',clean.length,'msgs');
 }
 async function loadHistoryFromSupabase(){
   try{
