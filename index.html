@@ -1270,7 +1270,7 @@ async function sendSignal(toId,data){
   if(!signalCh) return;
   await signalCh.send({type:'broadcast',event:'signal',payload:{from:myId,to:toId,fromName:myName,...data}});
 }
-async function handleSignal({from,fromName,sigType,sdp,candidate}){
+/*async function handleSignal({from,fromName,sigType,sdp,candidate}){
   if(sigType==='offer'){
     if(!peers.has(from)) createPeer(from,false);
     const p=peers.get(from); if(!p) return;
@@ -1290,11 +1290,85 @@ async function handleSignal({from,fromName,sigType,sdp,candidate}){
     if(p.pc.remoteDescription?.type) p.pc.addIceCandidate(cand).catch(()=>{});
     else{if(!p.iceQueue)p.iceQueue=[];p.iceQueue.push(cand);}
   }
+}*/
+async function handleSignal({from,fromName,sigType,sdp,candidate}){
+  if(sigType==='offer'){
+    if(peers.has(from)){
+      const p=peers.get(from);
+      if(p.pc.signalingState!=='stable' && p.pc.signalingState!=='have-local-offer'){
+        return;
+      }
+      if(p.pc.signalingState==='have-local-offer'){
+        if(myId < from){
+          return;
+        } else {
+          await p.pc.setLocalDescription({type:'rollback'});
+        }
+      }
+    }
+
+    if(!peers.has(from)) createPeer(from,false);
+    const p=peers.get(from); if(!p) return;
+    p.name=fromName;
+
+    try{
+      await p.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      if(p.iceQueue){
+        p.iceQueue.forEach(c=>p.pc.addIceCandidate(c).catch(()=>{}));
+        p.iceQueue=[];
+      }
+      const ans=await p.pc.createAnswer();
+      await p.pc.setLocalDescription(ans);
+      sendSignal(from,{sigType:'answer',sdp:p.pc.localDescription});
+    }catch(e){
+      console.warn('offer handling failed:',e);
+    }
+
+  } else if(sigType==='answer'){
+    const p=peers.get(from); if(!p) return;
+
+    // only accept answer if we're expecting one
+    if(p.pc.signalingState!=='have-local-offer'){
+      console.warn('got answer in wrong state:',p.pc.signalingState,'— ignoring');
+      return; // ← this is what fixes your error
+    }
+
+    try{
+      await p.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      if(p.iceQueue){
+        p.iceQueue.forEach(c=>p.pc.addIceCandidate(c).catch(()=>{}));
+        p.iceQueue=[];
+      }
+    }catch(e){
+      console.warn('answer handling failed:',e);
+    }
+
+  } else if(sigType==='ice'){
+    const p=peers.get(from); if(!p) return;
+    const cand=new RTCIceCandidate(candidate);
+    if(p.pc.remoteDescription?.type){
+      p.pc.addIceCandidate(cand).catch(()=>{});
+    } else {
+      if(!p.iceQueue) p.iceQueue=[];
+      p.iceQueue.push(cand);
+    }
+  }
 }
-function autoConnect(){
+/*function autoConnect(){
   onlineUsers.forEach((u,uid)=>{
     if(uid===myId||peers.has(uid)) return;
     if(myId<uid) initiateConnection(uid);
+  });
+}*/
+function autoConnect(){
+  onlineUsers.forEach((u,uid)=>{
+    if(uid===myId||peers.has(uid)) return;
+    if(myId<uid){
+      const delay=Math.random()*500;
+      setTimeout(()=>{
+        if(!peers.has(uid)) initiateConnection(uid);
+      },delay);
+    }
   });
 }
 async function initiateConnection(peerId){
