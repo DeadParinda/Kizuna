@@ -1792,7 +1792,7 @@ function updateConnQuality(){
   else if(n===1){icon.className='fas fa-signal';btn.style.color='#f59e0b';}
   else if(n<=2){icon.className='fas fa-signal';btn.style.color='#22c55e';}
   else{icon.className='fas fa-signal';btn.style.color='#00d4ff';}
-  document.getElementById('connStatusNote').textContent=n?n+' peer'+(n>1?'s':'')+' connected':'No peers';
+  //document.getElementById('connStatusNote').textContent=n?n+' peer'+(n>1?'s':'')+' connected':'No peers';
 }
 function updateCounts(){
   document.getElementById('peerCnt').textContent=[...peers.values()].filter(p=>p.status==='connected').length;
