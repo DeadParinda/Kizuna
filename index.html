@@ -1292,55 +1292,104 @@ async function sendSignal(toId,data){
   }
 }*/
 async function handleSignal({from,fromName,sigType,sdp,candidate}){
-  if(sigType==='offer'){
-    if(peers.has(from)){
-      const p=peers.get(from);
-      if(p.pc.signalingState!=='stable' && p.pc.signalingState!=='have-local-offer'){
-        return;
-      }
-      if(p.pc.signalingState==='have-local-offer'){
-        if(myId < from){
-          return;
-        } else {
-          await p.pc.setLocalDescription({type:'rollback'});
-        }
-      }
-    }
 
+  if(sigType==='offer'){
     if(!peers.has(from)) createPeer(from,false);
     const p=peers.get(from); if(!p) return;
     p.name=fromName;
 
     try{
+      // GLARE: we also sent an offer, need to decide who rolls back
+      if(p.pc.signalingState==='have-local-offer'){
+        if(myId > from){
+          // we lose, roll back our offer and accept theirs
+          await p.pc.setLocalDescription({type:'rollback'});
+        } else {
+          // we win, they should roll back — ignore their offer
+          // they will receive our offer and answer it
+          return;
+        }
+      }
+
+      if(p.pc.signalingState!=='stable'){
+        // not ready yet, queue it
+        if(!p.offerQueue) p.offerQueue=[];
+        p.offerQueue.push({from,fromName,sdp});
+        return;
+      }
+
       await p.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+
+      // flush queued ICE
       if(p.iceQueue){
-        p.iceQueue.forEach(c=>p.pc.addIceCandidate(c).catch(()=>{}));
+        for(const c of p.iceQueue){
+          await p.pc.addIceCandidate(c).catch(()=>{});
+        }
         p.iceQueue=[];
       }
+
       const ans=await p.pc.createAnswer();
       await p.pc.setLocalDescription(ans);
       sendSignal(from,{sigType:'answer',sdp:p.pc.localDescription});
+
     }catch(e){
-      console.warn('offer handling failed:',e);
+      console.warn('offer handling failed:',e.message);
+      // full reset and retry from scratch
+      dropPeer(from,false);
+      setTimeout(()=>{
+        if(!peers.has(from) && onlineUsers.has(from)){
+          if(myId < from) initiateConnection(from);
+        }
+      },1000+Math.random()*1000);
     }
 
   } else if(sigType==='answer'){
     const p=peers.get(from); if(!p) return;
 
-    // only accept answer if we're expecting one
+    if(p.pc.signalingState==='stable'){
+      // already connected, this is a duplicate — safe to ignore
+      // connection is working fine, no action needed
+      return;
+    }
+
     if(p.pc.signalingState!=='have-local-offer'){
-      console.warn('got answer in wrong state:',p.pc.signalingState,'— ignoring');
-      return; // ← this is what fixes your error
+      // wrong state but not stable either — something went wrong
+      // drop and reconnect
+      console.warn('answer in unexpected state:',p.pc.signalingState,'— resetting');
+      dropPeer(from,false);
+      setTimeout(()=>{
+        if(!peers.has(from) && onlineUsers.has(from)){
+          if(myId < from) initiateConnection(from);
+        }
+      },1000+Math.random()*1000);
+      return;
     }
 
     try{
       await p.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+
+      // flush queued ICE
       if(p.iceQueue){
-        p.iceQueue.forEach(c=>p.pc.addIceCandidate(c).catch(()=>{}));
+        for(const c of p.iceQueue){
+          await p.pc.addIceCandidate(c).catch(()=>{});
+        }
         p.iceQueue=[];
       }
+
+      // process any queued offers that arrived while we were negotiating
+      if(p.offerQueue?.length){
+        const next=p.offerQueue.shift();
+        handleSignal({...next,sigType:'offer'});
+      }
+
     }catch(e){
-      console.warn('answer handling failed:',e);
+      console.warn('answer handling failed:',e.message);
+      dropPeer(from,false);
+      setTimeout(()=>{
+        if(!peers.has(from) && onlineUsers.has(from)){
+          if(myId < from) initiateConnection(from);
+        }
+      },1000+Math.random()*1000);
     }
 
   } else if(sigType==='ice'){
@@ -1363,11 +1412,15 @@ async function handleSignal({from,fromName,sigType,sdp,candidate}){
 function autoConnect(){
   onlineUsers.forEach((u,uid)=>{
     if(uid===myId||peers.has(uid)) return;
+    // only the lexicographically smaller id initiates
     if(myId<uid){
-      const delay=Math.random()*500;
+      const jitter=Math.random()*800;
       setTimeout(()=>{
-        if(!peers.has(uid)) initiateConnection(uid);
-      },delay);
+        // double check still not connected after jitter
+        if(!peers.has(uid) && onlineUsers.has(uid)){
+          initiateConnection(uid);
+        }
+      },jitter);
     }
   });
 }
