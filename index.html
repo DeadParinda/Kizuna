@@ -755,12 +755,28 @@ const SB_ANON = 'sb_publishable_DyIm2CKsW9tZIYVqLpDf1g_Ti2OTTDs';
 const GIPHY_KEY = 'q1lL8A3rPdYwFDZDlBGXge6acvQ5DR4z';
 const DEFAULT_ROOM = 'general';
 const sb = supabase.createClient(SB_URL, SB_ANON);
-const ICE_CFG = { iceServers:[
-  {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'},
-  {urls:'stun:stun.cloudflare.com:3478'},
-]};
+const ICE_CFG = {
+  iceServers: [
+    // STUN — direct connection attempt first
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
 
+    // TURN — fallback relay when direct fails
+    {
+      urls: [
+        'turn:openrelay.metered.ca:80',
+        'turn:openrelay.metered.ca:443',
+        'turn:openrelay.metered.ca:443?transport=tcp',
+        'turns:openrelay.metered.ca:443'
+      ],
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
+  ],
+  iceCandidatePoolSize: 10,
+  iceTransportPolicy: 'all'   // try direct first, fall back to TURN
+};
 const HISTORY_MAX     = 80;
 const TYPING_DEBOUNCE = 2500;
 const SP_THRESH       = 3;
@@ -1293,19 +1309,45 @@ async function initiateConnection(peerId){
 // PEER CONNECTION
 function createPeer(peerId,isInitiator){
   const pc=new RTCPeerConnection(ICE_CFG);
+  
   const po={pc,dc:null,name:onlineUsers.get(peerId)?.name||peerId.slice(0,8),status:'connecting',isSuper:false,iceQueue:[],mediaTransfer:null};
   peers.set(peerId,po);
   pc.onicecandidate=({candidate})=>{if(candidate)sendSignal(peerId,{sigType:'ice',candidate});};
   pc.oniceconnectionstatechange=()=>{
-    const s=pc.iceConnectionState;
-    if(s==='connected'||s==='completed'){po.status='connected';updateSuperPeer();renderSidebar();updateCounts();updateConnQuality();}
-    else if(s==='failed') pc.restartIce();
-    else if(s==='disconnected'||s==='closed') dropPeer(peerId,true);
-  };
+  const s=pc.iceConnectionState;
+  if(s==='connected'||s==='completed'){
+    po.status='connected';
+    updateSuperPeer();renderSidebar();updateCounts();updateConnQuality();
+  }
+  else if(s==='failed'){
+    console.warn('ICE failed for',peerId,'— restarting');
+    try{ pc.restartIce(); }catch(_){}
+    // if still failed after 5s, drop and retry
+    setTimeout(()=>{
+      if(pc.iceConnectionState==='failed'){
+        dropPeer(peerId,false);
+        // re-attempt connection
+        setTimeout(()=>{
+          if(myId<peerId) initiateConnection(peerId);
+        },1000);
+      }
+    },5000);
+  }
+  else if(s==='disconnected'){
+    // dont drop immediately, might recover
+    setTimeout(()=>{
+      if(pc.iceConnectionState==='disconnected'||pc.iceConnectionState==='failed'){
+        dropPeer(peerId,true);
+      }
+    },4000);
+  }
+  else if(s==='closed') dropPeer(peerId,true);
+};
   if(isInitiator){const dc=pc.createDataChannel('chat',{ordered:true});wireChannel(peerId,dc);}
   else pc.ondatachannel=({channel})=>wireChannel(peerId,channel);
   return po;
 }
+
 function wireChannel(peerId,dc){
   const p=peers.get(peerId);if(!p)return;
   p.dc=dc;
