@@ -755,6 +755,11 @@ const SB_ANON = 'sb_publishable_DyIm2CKsW9tZIYVqLpDf1g_Ti2OTTDs';
 const GIPHY_KEY = 'q1lL8A3rPdYwFDZDlBGXge6acvQ5DR4z';
 const DEFAULT_ROOM = 'general';
 const sb = supabase.createClient(SB_URL, SB_ANON);
+const BASE_TITLE = 'Kizuna';
+let isTabFocused = !document.hidden;
+let unreadReplies = 0;
+let hasUnreadMessages = false;
+
 const ICE_CFG = {
   iceServers: [
     // STUN — direct connection attempt first
@@ -903,6 +908,25 @@ document.addEventListener('visibilitychange',()=>{
     saveHistoryToSupabase();
   }
 });
+window.addEventListener('focus', ()=>{
+  isTabFocused = true;
+  unreadReplies = 0;
+  hasUnreadMessages = false;
+  updateTitle();
+});
+
+window.addEventListener('blur', ()=>{
+  isTabFocused = false;
+});
+
+document.addEventListener('visibilitychange', ()=>{
+  isTabFocused = !document.hidden;
+  if(isTabFocused){
+    unreadReplies = 0;
+    hasUnreadMessages = false;
+    updateTitle();
+  }
+});
 window.addEventListener('beforeunload', e=>{
   // sync fire-and-forget via sendBeacon
   const payload = JSON.stringify({
@@ -916,7 +940,38 @@ window.addEventListener('beforeunload', e=>{
   );
   peers.forEach((_,pid)=>dropPeer(pid,false));
 });
+function updateTitle(){
+  if(isTabFocused){
+    document.title = BASE_TITLE;
+    return;
+  }
+  if(unreadReplies > 0) document.title = `(${unreadReplies}) ${BASE_TITLE}`;
+  else if(hasUnreadMessages) document.title = `● ${BASE_TITLE}`;
+  else document.title = BASE_TITLE;
+}
 
+function notifyNewMessage(m){
+  // ignore own messages and when tab is focused
+  if(!myId || m.senderId === myId || isTabFocused) return;
+
+  // is it a reply to one of MY messages?
+  if(m.replyTo){
+    const rt = typeof m.replyTo === 'object' ? m.replyTo : null;
+    const parentId = rt?.id;
+    if(parentId){
+      // check if the replied-to message is mine
+      const parent = history.find(h => h.id === parentId);
+      if(parent && parent.senderId === myId){
+        unreadReplies++;
+        updateTitle();
+        return;
+      }
+    }
+  }
+
+  hasUnreadMessages = true;
+  updateTitle();
+}
 // PASTE HANDLER
 function initPasteHandler(){
   document.addEventListener('paste', e=>{
@@ -1091,6 +1146,7 @@ async function enterApp(user){
   .select('name,avatar_url,avatar_updated_at')
   .eq('id',myId)
   .single();
+  console.log(profile, myId, user)
 
   myName = profile?.name || user.email.split('@')[0];
   myAvatarUrl = profile?.avatar_url || '';
@@ -1542,6 +1598,7 @@ function handleDCMsg(fromId,msg){
       if(history.find(h=>h.id===m.id)) break;
       history.push(m);if(history.length>HISTORY_MAX)history.shift();
       renderMessage(m,false);
+      notifyNewMessage(m);
       broadcastExcept(fromId,{type:'CHAT',message:m});
       break;
     }
@@ -1550,6 +1607,7 @@ function handleDCMsg(fromId,msg){
         const ph={id:msg.id,senderId:msg.senderId,senderName:msg.senderName,content:'',type:'image',ts:msg.ts||Date.now(),reactions:{},replyTo:null,edited:false,mediaUrl:null,pending:true};
         history.push(ph);if(history.length>HISTORY_MAX)history.shift();
         renderMessage(ph,ph.senderId===myId);
+        notifyNewMessage(ph);
         broadcastExcept(fromId,{type:'MEDIA_META',...msg});
       }
       p.mediaTransfer={id:msg.id,mimeType:msg.mimeType,totalChunks:msg.totalChunks,chunks:[],senderId:msg.senderId,senderName:msg.senderName,ts:msg.ts};
@@ -1846,7 +1904,7 @@ function showTypingFor(userId,name,avatarUrl){
   ind.classList.add('show');
   clearTimeout(typingShowTimer);
   typingShowTimer=setTimeout(()=>ind.classList.remove('show'),3000);
-  scrollBot(false);
+  //scrollBot(true);
 }
 function handleTyping(){
   if(typingTimer)return;
