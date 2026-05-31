@@ -8,7 +8,7 @@ import { autoResize, scrollBot, updateScrollBtn, fetchAndCacheProfiles } from '.
 export async function sendMsg(){
   const inp=document.getElementById('msgInput');
   const text=inp.value.trim();if(!text)return;
-  const rd=state.replyToMsg?{...replyToMsg}:null;
+  const rd=state.replyToMsg?{...state.replyToMsg}:null;
   clearReply();inp.value='';autoResize(inp);closeAll();
   const m={id:crypto.randomUUID(),senderId:state.myId,senderName:state.myName,content:text,type:'text',ts:Date.now(),reactions:{},replyTo:rd,edited:false};
   state.history.push(m);if(state.history.length>HISTORY_MAX)state.history.shift();
