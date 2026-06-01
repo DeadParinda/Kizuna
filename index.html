@@ -1,282 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kizuna</title>
 
-      <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
-      <link rel="icon" type="image/png" href="./assets/icon.png">
-      <link rel="shortcut icon" href="./assets/icon.png">
-      <link rel="apple-touch-icon" href="./assets/icon.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:w`ght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
-<script>
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    window.onerror = function(message, source, lineno, colno, error) {
-      const errDiv = document.createElement('div');
-      errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
-      errDiv.textContent = `Error: ${message}\nSource: ${source}:${lineno}:${colno}\nStack: ${error?.stack}`;
-      document.body.appendChild(errDiv);
-    };
-    window.onunhandledrejection = function(event) {
-      const errDiv = document.createElement('div');
-      errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
-      errDiv.textContent = `Unhandled Promise Rejection: ${event.reason?.message || event.reason}\nStack: ${event.reason?.stack}`;
-      document.body.appendChild(errDiv);
-    };
-  }
-</script>
-<link rel="stylesheet" href="css/style.css?v=4">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kizuna</title>
+
+  <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
+  <link rel="icon" type="image/png" href="./assets/icon.png">
+  <link rel="shortcut icon" href="./assets/icon.png">
+  <link rel="apple-touch-icon" href="./assets/icon.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:w`ght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
+  <script>
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      window.onerror = function (message, source, lineno, colno, error) {
+        const errDiv = document.createElement('div');
+        errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
+        errDiv.textContent = `Error: ${message}\nSource: ${source}:${lineno}:${colno}\nStack: ${error?.stack}`;
+        document.body.appendChild(errDiv);
+      };
+      window.onunhandledrejection = function (event) {
+        const errDiv = document.createElement('div');
+        errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
+        errDiv.textContent = `Unhandled Promise Rejection: ${event.reason?.message || event.reason}\nStack: ${event.reason?.stack}`;
+        document.body.appendChild(errDiv);
+      };
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css?v=4">
 
 </head>
+
 <body>
-<div id="lightbox"><button id="lbx" onclick="closeLB()"><i class="fas fa-xmark"></i></button><img id="lbImg" src="" alt=""></div>
-<div id="toast"></div>
-<div id="reactPickerWrap"></div>
+  <div id="lightbox"><button id="lbx" onclick="closeLB()"><i class="fas fa-xmark"></i></button><img id="lbImg" src=""
+      alt=""></div>
+  <div id="toast"></div>
+  <div id="reactPickerWrap"></div>
 
-<div id="ctxMenu">
-  <div class="citem" id="ctxReact" onclick="ctx('react')"><span class="ci">😊</span>React</div>
-  <div class="citem" onclick="ctx('reply')"><span class="ci"><i class="fas fa-reply"></i></span>Reply</div>
-  <div class="citem" onclick="ctx('copy')"><span class="ci"><i class="fas fa-copy"></i></span>Copy</div>
-  <div class="csep"></div>
-  <div class="citem" id="ctxEdit" onclick="ctx('edit')"><span class="ci"><i class="fas fa-pen"></i></span>Edit</div>
-  <div class="citem danger" id="ctxDel" onclick="ctx('delete')"><span class="ci"><i class="fas fa-trash"></i></span>Delete</div>
-</div>
-
-<div class="mover" id="editModal">
-  <div class="mcard">
-    <div class="mhd">
-      <button class="mclose" onclick="closeModal('editModal')"><i class="fas fa-xmark"></i></button>
-      <div style="font-size:.9rem;font-weight:900;color:var(--text)">Edit Message</div>
+  <div id="ctxMenuWrap">
+    <div class="ctx-emojis" id="ctxEmojis">
+      <button class="ctx-emoji-btn" onclick="ctxReact('👍')">👍</button>
+      <button class="ctx-emoji-btn" onclick="ctxReact('❤️')">❤️</button>
+      <button class="ctx-emoji-btn" onclick="ctxReact('😂')">😂</button>
+      <button class="ctx-emoji-btn" onclick="ctxReact('😮')">😮</button>
+      <button class="ctx-emoji-btn" onclick="ctxReact('😢')">😢</button>
+      <button class="ctx-emoji-btn" onclick="ctxReact('🙏')">🙏</button>
+      <button class="ctx-emoji-btn plus" onclick="ctx('react')"><i class="fas fa-plus"></i></button>
     </div>
-    <div class="mbody">
-      <textarea class="mta" id="editTa"></textarea>
-      <div class="mactions">
-        <button class="mbtn-s" onclick="closeModal('editModal')">Cancel</button>
-        <button class="mbtn-p" onclick="commitEdit()"><i class="fas fa-check me-1"></i>Save</button>
-      </div>
+    <div id="ctxMenu">
+      <div class="citem" onclick="ctx('reply')"><span class="ci"><i class="fas fa-reply"></i></span>Reply</div>
+      <div class="citem" onclick="ctx('copy')"><span class="ci"><i class="fas fa-copy"></i></span>Copy</div>
+      <div class="citem" id="ctxReact" onclick="ctx('react')"><span class="ci"><i class="far fa-smile"></i></span>React</div>
+      <div class="csep"></div>
+      <div class="citem" id="ctxEdit" onclick="ctx('edit')"><span class="ci"><i class="fas fa-pen"></i></span>Edit</div>
+      <div class="citem danger" id="ctxDel" onclick="ctx('delete')"><span class="ci"><i class="fas fa-trash"></i></span>Delete</div>
     </div>
   </div>
-</div>
 
-<div class="mover" id="delModal">
-  <div class="mcard">
-    <div class="mhd">
-      <button class="mclose" onclick="closeModal('delModal')"><i class="fas fa-xmark"></i></button>
-      <div style="font-size:.9rem;font-weight:900;color:#ef4444"><i class="fas fa-triangle-exclamation me-1"></i>Delete Message</div>
-    </div>
-    <div class="mbody">
-      <div style="font-size:.8rem;color:var(--t2);margin-bottom:.6rem">This cannot be undone.</div>
-      <div class="mta" id="delPreview" style="min-height:40px;color:var(--t2);font-size:.8rem;pointer-events:none"></div>
-      <div class="mactions">
-        <button class="mbtn-s" onclick="closeModal('delModal')">Cancel</button>
-        <button class="dbtn-d" onclick="commitDel()"><i class="fas fa-trash me-1"></i>Delete</button>
+  <div class="mover" id="editModal">
+    <div class="mcard">
+      <div class="mhd">
+        <button class="mclose" onclick="closeModal('editModal')"><i class="fas fa-xmark"></i></button>
+        <div style="font-size:.9rem;font-weight:900;color:var(--text)">Edit Message</div>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="mover" id="peerModal">
-  <div class="mcard" style="max-width:420px">
-    <div class="mhd">
-      <button class="mclose" onclick="closeModal('peerModal')"><i class="fas fa-xmark"></i></button>
-      <div style="font-size:.95rem;font-weight:900;color:var(--text)"><i class="fas fa-network-wired me-1" style="color:var(--orange)"></i>Network</div>
-      <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Manage connections</div>
-    </div>
-    <div class="mbody">
-      <div class="peer-tab-bar">
-        <div class="peer-tab act" id="ptOnline" onclick="switchPeerTab('online')"><i class="fas fa-circle-dot me-1"></i>Online</div>
-        <div class="peer-tab" id="ptConnected" onclick="switchPeerTab('connected')"><i class="fas fa-link me-1"></i>Connected</div>
-        <div class="peer-tab" id="ptHistory" onclick="switchPeerTab('history')"><i class="fas fa-history me-1"></i>History</div>
-      </div>
-      <div id="peerListContent" style="max-height:280px;overflow-y:auto"></div>
-      <div style="margin-top:.65rem">
-        <button class="mbtn-p" onclick="refreshOnlineUsers()" style="width:100%;padding:.5rem"><i class="fas fa-rotate me-1"></i>Refresh</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="mover" id="profileModal">
-  <div class="mcard" style="max-width:380px">
-    <div class="mhd">
-      <button class="mclose" onclick="closeModal('profileModal')"><i class="fas fa-xmark"></i></button>
-      <div style="font-size:.9rem;font-weight:900;color:var(--text)"><i class="fas fa-user me-1" style="color:var(--orange)"></i>Edit Profile</div>
-    </div>
-    <div class="mbody">
-      <div class="profile-av-preview" id="profileAvPreview">
-        <img id="profileAvImg" src="" alt="">
-      </div>
-      <div style="text-align:center;margin-bottom:.85rem">
-        <div class="name-locked" style="justify-content:center;flex-direction:column;align-items:center">
-          <div style="display:flex;align-items:center;gap:.4rem">
-            <i class="fas fa-lock lock-icon"></i>
-            <span id="profileNameDisplay" style="font-weight:800"></span>
-          </div>
-          <div class="lock-note">Name is permanent</div>
+      <div class="mbody">
+        <textarea class="mta" id="editTa"></textarea>
+        <div class="mactions">
+          <button class="mbtn-s" onclick="closeModal('editModal')">Cancel</button>
+          <button class="mbtn-p" onclick="commitEdit()"><i class="fas fa-check me-1"></i>Save</button>
         </div>
       </div>
-      <div style="border-top:1px solid var(--border);padding-top:.7rem;margin-top:.2rem">
-        <div style="font-size:.65rem;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.5rem">
-          <i class="fas fa-image me-1"></i>Avatar
-          <span id="profileCooldownBadge" style="margin-left:6px;font-size:.6rem;color:#f59e0b"></span>
-        </div>
-        <div id="profileCatBar" style="display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:.4rem"></div>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px;max-height:180px;overflow-y:auto">
-          <div id="profileAvatarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px"></div>
-        </div>
-      </div>
-      <div class="mactions" style="margin-top:.75rem">
-        <button class="mbtn-s" onclick="closeModal('profileModal')">Cancel</button>
-        <button class="mbtn-p" id="profileSaveBtn" onclick="saveProfile()"><i class="fas fa-check me-1"></i>Save</button>
-      </div>
     </div>
   </div>
-</div>
 
-<div class="screen" id="loginScreen">
-  <div class="login-wrap card-g" style="padding:2rem 1.8rem">
-    <div class="text-center mb-4">
-      <div class="logo-big">絆 Kizuna</div>
-      <div class="logo-sub">Bonding... Hydrogen Bonding.</div>
-    </div>
-    <div class="auth-tabs">
-      <button class="auth-tab act" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
-      <button class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Sign Up</button>
-    </div>
-    <div id="loginForm">
-      <div class="mb-3">
-        <span class="flabel">Email</span>
-        <input id="loginEmail" class="finput" type="email" placeholder="you@example.com" autocomplete="email">
+  <div class="mover" id="delModal">
+    <div class="mcard">
+      <div class="mhd">
+        <button class="mclose" onclick="closeModal('delModal')"><i class="fas fa-xmark"></i></button>
+        <div style="font-size:.9rem;font-weight:900;color:#ef4444"><i
+            class="fas fa-triangle-exclamation me-1"></i>Delete Message</div>
       </div>
-      <div class="mb-4">
-        <span class="flabel">Password</span>
-        <input id="loginPassword" class="finput" type="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="btn-main" id="loginBtn" onclick="doLogin()"><i class="fas fa-right-to-bracket me-1"></i>Sign In</button>
-    </div>
-    <div id="signupForm" style="display:none">
-      <div class="mb-3">
-        <span class="flabel">Display Name <span style="color:var(--orange);font-size:.6rem">- permanent</span></span>
-        <input id="signupName" class="finput" type="text" placeholder="Your name…" maxlength="24">
-      </div>
-      <div class="mb-3">
-        <span class="flabel">Email</span>
-        <input id="signupEmail" class="finput" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="mb-4">
-        <span class="flabel">Password</span>
-        <input id="signupPassword" class="finput" type="password" placeholder="Min 6 characters" autocomplete="new-password">
-      </div>
-      <button class="btn-main" id="signupBtn" onclick="doSignup()"><i class="fas fa-user-plus me-1"></i>Create Account</button>
-    </div>
-    <div class="mt-3">
-      <div class="status-bar"><div class="sdot" id="sbDot"></div><span id="sbTxt">Connecting…</span></div>
-    </div>
-  </div>
-</div>
-
-<div id="app" style="display:none">
-  <div class="topbar">
-    <div class="tb-brand">絆</div>
-    <div class="tb-div"></div>
-    <div>
-      <div class="ch-name" id="topRoomName">Kizuna</div>
-      <div class="ch-sub"><span class="odot"></span><span id="onlineCnt">0</span> online · <span id="peerCnt">0</span> P2P</div>
-    </div>
-    <div class="tb-sp"></div>
-    <div class="tb-btn" id="connQualBtn" title="Connection Quality"><i class="fas fa-signal" id="connQualIcon"></i></div>
-    <div class="tb-btn" onclick="openPeerModal()" style="position:relative" title="Network">
-      <i class="fas fa-network-wired"></i>
-      <span class="notif-badge" id="peerNotif" style="display:none">!</span>
-    </div>
-    <div class="tb-btn" id="sbToggle" onclick="toggleSB()" title="Members"><i class="fas fa-users"></i></div>
-    <div class="my-av" id="myAvTb" onclick="openProfileModal()" title="Edit Profile"></div>
-  </div>
-  <div class="app-body">
-    <div class="chat-col">
-      <div id="messagesArea">
-        <div id="msgList"></div>
-        <div class="typing-ind" id="typingInd">
-          <div class="mav" id="typingAv"></div>
-          <div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+      <div class="mbody">
+        <div style="font-size:.8rem;color:var(--t2);margin-bottom:.6rem">This cannot be undone.</div>
+        <div class="mta" id="delPreview" style="min-height:40px;color:var(--t2);font-size:.8rem;pointer-events:none">
+        </div>
+        <div class="mactions">
+          <button class="mbtn-s" onclick="closeModal('delModal')">Cancel</button>
+          <button class="dbtn-d" onclick="commitDel()"><i class="fas fa-trash me-1"></i>Delete</button>
         </div>
       </div>
-      <button id="scrollBtn" onclick="scrollBot(true)">
-        <i class="fas fa-chevron-down"></i>
-        <span class="ub" id="ubBadge"></span>
-      </button>
-      <div class="input-area">
-        <div class="plus-menu" id="plusMenu">
-          <div class="pm-item" onclick="trigImg()">
-            <div class="pm-icon" style="background:linear-gradient(135deg,#1d4ed8,#0ea5e9)"><i class="fas fa-image"></i></div>
-            <div class="pm-label">Photo</div>
+    </div>
+  </div>
+
+  <div class="mover" id="peerModal">
+    <div class="mcard" style="max-width:420px">
+      <div class="mhd">
+        <button class="mclose" onclick="closeModal('peerModal')"><i class="fas fa-xmark"></i></button>
+        <div style="font-size:.95rem;font-weight:900;color:var(--text)"><i class="fas fa-network-wired me-1"
+            style="color:var(--orange)"></i>Network</div>
+        <div style="font-size:.65rem;color:var(--t3);margin-top:2px">Manage connections</div>
+      </div>
+      <div class="mbody">
+        <div class="peer-tab-bar">
+          <div class="peer-tab act" id="ptOnline" onclick="switchPeerTab('online')"><i
+              class="fas fa-circle-dot me-1"></i>Online</div>
+          <div class="peer-tab" id="ptConnected" onclick="switchPeerTab('connected')"><i
+              class="fas fa-link me-1"></i>Connected</div>
+          <div class="peer-tab" id="ptHistory" onclick="switchPeerTab('history')"><i
+              class="fas fa-history me-1"></i>History</div>
+        </div>
+        <div id="peerListContent" style="max-height:280px;overflow-y:auto"></div>
+        <div style="margin-top:.65rem">
+          <button class="mbtn-p" onclick="refreshOnlineUsers()" style="width:100%;padding:.5rem"><i
+              class="fas fa-rotate me-1"></i>Refresh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mover" id="profileModal">
+    <div class="mcard" style="max-width:380px">
+      <div class="mhd">
+        <button class="mclose" onclick="closeModal('profileModal')"><i class="fas fa-xmark"></i></button>
+        <div style="font-size:.9rem;font-weight:900;color:var(--text)"><i class="fas fa-user me-1"
+            style="color:var(--orange)"></i>Edit Profile</div>
+      </div>
+      <div class="mbody">
+        <div class="profile-av-preview" id="profileAvPreview">
+          <img id="profileAvImg" src="" alt="">
+        </div>
+        <div style="text-align:center;margin-bottom:.85rem">
+          <div class="name-locked" style="justify-content:center;flex-direction:column;align-items:center">
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <i class="fas fa-lock lock-icon"></i>
+              <span id="profileNameDisplay" style="font-weight:800"></span>
+            </div>
+            <div class="lock-note">Name is permanent</div>
           </div>
         </div>
-        <div class="picker-panel" id="pickerPanel">
-          <div class="picker-tabs">
-            <button class="ptab act" id="ptabEmoji" onclick="switchPickerTab('emoji')">😊 Emoji</button>
-            <button class="ptab" id="ptabGif" onclick="switchPickerTab('gif')"><i class="fas fa-film"></i> GIF</button>
+        <div style="border-top:1px solid var(--border);padding-top:.7rem;margin-top:.2rem">
+          <div
+            style="font-size:.65rem;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.5rem">
+            <i class="fas fa-image me-1"></i>Avatar
+            <span id="profileCooldownBadge" style="margin-left:6px;font-size:.6rem;color:#f59e0b"></span>
           </div>
-          <div class="tab-body show" id="tabEmoji">
-            <div id="emojiMartWrap"></div>
+          <div id="profileCatBar"
+            style="display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:.4rem">
           </div>
-          <div class="tab-body" id="tabGif">
-            <div class="gif-search"><input type="text" id="gifSearch" placeholder="Search GIFs…" oninput="onGifSearch(this.value)"></div>
-            <div class="gif-grid" id="gifGrid"><div class="gif-status">Search for GIFs above</div></div>
+          <div
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px;max-height:180px;overflow-y:auto">
+            <div id="profileAvatarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px"></div>
           </div>
         </div>
-        <div id="pastePreview">
-          <img id="pastePreviewImg" src="" alt="paste preview">
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:.72rem;color:var(--t2);font-weight:700">Send image?</div>
-            <div style="display:flex;gap:4px">
-              <button class="paste-send-btn" onclick="sendPastedImage()"><i class="fas fa-paper-plane me-1"></i>Send</button>
-              <button class="paste-cancel-btn" onclick="cancelPaste()">Cancel</button>
+        <div class="mactions" style="margin-top:.75rem">
+          <button class="mbtn-s" onclick="closeModal('profileModal')">Cancel</button>
+          <button class="mbtn-p" id="profileSaveBtn" onclick="saveProfile()"><i
+              class="fas fa-check me-1"></i>Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="loginScreen">
+    <div class="login-wrap card-g" style="padding:2rem 1.8rem">
+      <div class="text-center mb-4">
+        <div class="logo-big">絆 Kizuna</div>
+        <div class="logo-sub">Bonding... Hydrogen Bonding.</div>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab act" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+      <div id="loginForm">
+        <div class="mb-3">
+          <span class="flabel">Email</span>
+          <input id="loginEmail" class="finput" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="mb-4">
+          <span class="flabel">Password</span>
+          <input id="loginPassword" class="finput" type="password" placeholder="••••••••"
+            autocomplete="current-password">
+        </div>
+        <button class="btn-main" id="loginBtn" onclick="doLogin()"><i class="fas fa-right-to-bracket me-1"></i>Sign
+          In</button>
+      </div>
+      <div id="signupForm" style="display:none">
+        <div class="mb-3">
+          <span class="flabel">Display Name <span style="color:var(--orange);font-size:.6rem">- permanent</span></span>
+          <input id="signupName" class="finput" type="text" placeholder="Your name…" maxlength="24">
+        </div>
+        <div class="mb-3">
+          <span class="flabel">Email</span>
+          <input id="signupEmail" class="finput" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="mb-4">
+          <span class="flabel">Password</span>
+          <input id="signupPassword" class="finput" type="password" placeholder="Min 6 characters"
+            autocomplete="new-password">
+        </div>
+        <button class="btn-main" id="signupBtn" onclick="doSignup()"><i class="fas fa-user-plus me-1"></i>Create
+          Account</button>
+      </div>
+      <div class="mt-3">
+        <div class="status-bar">
+          <div class="sdot" id="sbDot"></div><span id="sbTxt">Connecting…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="topbar">
+      <div class="tb-brand">絆</div>
+      <div class="tb-div"></div>
+      <div>
+        <div class="ch-name" id="topRoomName">Kizuna</div>
+        <div class="ch-sub"><span class="odot"></span><span id="onlineCnt">0</span> online · <span id="peerCnt">0</span>
+          P2P</div>
+      </div>
+      <div class="tb-sp"></div>
+      <div class="tb-btn" id="connQualBtn" title="Connection Quality"><i class="fas fa-signal" id="connQualIcon"></i>
+      </div>
+      <div class="tb-btn" onclick="openPeerModal()" style="position:relative" title="Network">
+        <i class="fas fa-network-wired"></i>
+        <span class="notif-badge" id="peerNotif" style="display:none">!</span>
+      </div>
+      <div class="tb-btn" id="sbToggle" onclick="toggleSB()" title="Members"><i class="fas fa-users"></i></div>
+      <div class="my-av" id="myAvTb" onclick="openProfileModal()" title="Edit Profile"></div>
+    </div>
+    <div class="app-body">
+      <div class="chat-col">
+        <div id="messagesArea">
+          <div id="msgList"></div>
+          <div class="typing-ind" id="typingInd">
+            <div class="mav" id="typingAv"></div>
+            <div class="tdots">
+              <div class="td"></div>
+              <div class="td"></div>
+              <div class="td"></div>
             </div>
           </div>
         </div>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImgUp(event)">
-        <div id="replyPreview">
-          <div style="color:var(--orange);font-size:.72rem"><i class="fas fa-reply"></i></div>
-          <div class="rp-info">
-            <div class="rp-sender" id="rpSender"></div>
-            <div class="rp-text" id="rpText"></div>
-          </div>
-          <button class="rp-close" onclick="clearReply()"><i class="fas fa-xmark"></i></button>
-        </div>
-        <div class="iwrap" id="iwrap">
-          <button class="ibtn" id="plusBtn" onclick="togglePlus()"><i class="fas fa-plus"></i></button>
-          <textarea id="msgInput" rows="1" placeholder="Message… (paste image to share)" onkeydown="handleKey(event)" oninput="autoResize(this);handleTyping()"></textarea>
-          <button class="ibtn" id="emojiBtn" onclick="togglePicker()"><i class="far fa-face-smile"></i></button>
-          <button class="sbtn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;padding:0 .2rem">
-                <div style="font-size:.58rem;color:var(--t3)" id="encryptionNote">
-                    <i class="fas me-1"></i>Made with 💗 by Udta Parinda
-                </div>
+        <button id="scrollBtn" onclick="scrollBot(true)">
+          <i class="fas fa-chevron-down"></i>
+          <span class="ub" id="ubBadge"></span>
+        </button>
+        <div class="input-area">
+          <div class="plus-menu" id="plusMenu">
+            <div class="pm-item" onclick="trigImg()">
+              <div class="pm-icon" style="background:linear-gradient(135deg,#1d4ed8,#0ea5e9)"><i
+                  class="fas fa-image"></i></div>
+              <div class="pm-label">Photo</div>
             </div>
+          </div>
+          <div class="picker-panel" id="pickerPanel">
+            <div class="picker-tabs">
+              <button class="ptab act" id="ptabEmoji" onclick="switchPickerTab('emoji')">😊 Emoji</button>
+              <button class="ptab" id="ptabGif" onclick="switchPickerTab('gif')"><i class="fas fa-film"></i>
+                GIF</button>
+            </div>
+            <div class="tab-body show" id="tabEmoji">
+              <div id="emojiMartWrap"></div>
+            </div>
+            <div class="tab-body" id="tabGif">
+              <div class="gif-search"><input type="text" id="gifSearch" placeholder="Search GIFs…"
+                  oninput="onGifSearch(this.value)"></div>
+              <div class="gif-grid" id="gifGrid">
+                <div class="gif-status">Search for GIFs above</div>
+              </div>
+            </div>
+          </div>
+          <div id="pastePreview">
+            <img id="pastePreviewImg" src="" alt="paste preview">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:.72rem;color:var(--t2);font-weight:700">Send image?</div>
+              <div style="display:flex;gap:4px">
+                <button class="paste-send-btn" onclick="sendPastedImage()"><i
+                    class="fas fa-paper-plane me-1"></i>Send</button>
+                <button class="paste-cancel-btn" onclick="cancelPaste()">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImgUp(event)">
+          <div id="replyPreview">
+            <div style="color:var(--orange);font-size:.72rem"><i class="fas fa-reply"></i></div>
+            <div class="rp-info">
+              <div class="rp-sender" id="rpSender"></div>
+              <div class="rp-text" id="rpText"></div>
+            </div>
+            <button class="rp-close" onclick="clearReply()"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="iwrap" id="iwrap">
+            <button class="ibtn" id="plusBtn" onclick="togglePlus()"><i class="fas fa-plus"></i></button>
+            <textarea id="msgInput" rows="1" placeholder="Message… (paste image to share)" onkeydown="handleKey(event)"
+              oninput="autoResize(this);handleTyping()"></textarea>
+            <button class="ibtn" id="emojiBtn" onclick="togglePicker()"><i class="far fa-face-smile"></i></button>
+            <button class="sbtn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;padding:0 .2rem">
+            <div style="font-size:.58rem;color:var(--t3)" id="encryptionNote">
+              <i class="fas me-1"></i>Made with 💗 by Udta Parinda
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <div class="sidebar" id="sidebar">
-      <div class="sb-hd">
-        <span class="sb-title">Members</span>
-        <span class="sb-count" id="sbCount">1 online</span>
+
+      <div class="sidebar" id="sidebar">
+        <div class="sb-hd">
+          <span class="sb-title">Members</span>
+          <span class="sb-count" id="sbCount">1 online</span>
+        </div>
+        <div class="sb-list" id="sbList"></div>
       </div>
-      <div class="sb-list" id="sbList"></div>
     </div>
   </div>
-</div>
 
-<script type="module" src="js/main.js?v=11"></script>
+  <script type="module" src="js/main.js?v=11"></script>
 
 </body>
+
 </html>
