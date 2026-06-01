@@ -29,7 +29,7 @@ html {
 }
 
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   background: var(--bg);
   color: var(--text);
   height: 100dvh;
@@ -56,7 +56,7 @@ em-emoji-picker {
   --category-icon-size: 18px;
   --color-border: rgba(255, 107, 0, .2);
   --color-border-over: rgba(255, 107, 0, .4);
-  --font-family: 'Nunito', sans-serif;
+  --font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   --rgb-accent: 255, 107, 0;
   --rgb-background: 24, 24, 24;
   --rgb-color: 240, 237, 232;
@@ -138,7 +138,7 @@ em-emoji-picker {
   color: var(--text);
   border-radius: 11px;
   padding: .6rem .9rem;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .88rem;
   transition: all .25s;
   outline: none
@@ -167,7 +167,7 @@ em-emoji-picker {
   color: #fff;
   font-weight: 800;
   font-size: .9rem;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   cursor: pointer;
   transition: all .25s;
   box-shadow: 0 4px 18px rgba(255, 107, 0, .32)
@@ -197,7 +197,7 @@ em-emoji-picker {
   color: var(--t2);
   font-weight: 700;
   font-size: .85rem;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   cursor: pointer;
   transition: all .22s
 }
@@ -225,7 +225,7 @@ em-emoji-picker {
   color: var(--t2);
   font-weight: 800;
   font-size: .82rem;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   cursor: pointer;
   transition: all .2s
 }
@@ -921,7 +921,7 @@ body.ctx-open .bhm {
   font-size: .65rem;
   cursor: pointer;
   font-weight: 700;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   text-decoration: underline
 }
 
@@ -1050,7 +1050,7 @@ body.ctx-open .bhm {
   font-weight: 800;
   padding: .3rem .7rem;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif
 }
 
 .paste-send-btn:hover {
@@ -1066,7 +1066,7 @@ body.ctx-open .bhm {
   font-weight: 700;
   padding: .3rem .7rem;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif
 }
 
 .paste-cancel-btn:hover {
@@ -1156,7 +1156,7 @@ body.ctx-open .bhm {
   border: none;
   outline: none;
   color: var(--text);
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .85rem;
   resize: none;
   max-height: 110px;
@@ -1328,7 +1328,7 @@ body.ctx-open .bhm {
   font-size: .72rem;
   font-weight: 800;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   transition: all .18s
 }
 
@@ -1358,7 +1358,7 @@ body.ctx-open .bhm {
   border-radius: 8px;
   padding: .3rem .65rem;
   color: var(--text);
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .78rem;
   outline: none
 }
@@ -1612,7 +1612,7 @@ body.ctx-open .bhm {
   border-radius: 10px;
   padding: .55rem .8rem;
   color: var(--text);
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .84rem;
   resize: none;
   outline: none;
@@ -1637,7 +1637,7 @@ body.ctx-open .bhm {
   border-radius: 9px;
   background: var(--orange);
   color: #fff;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .78rem;
   font-weight: 800;
   cursor: pointer;
@@ -1660,7 +1660,7 @@ body.ctx-open .bhm {
   border-radius: 9px;
   background: var(--bg3);
   color: var(--t2);
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .78rem;
   font-weight: 700;
   cursor: pointer;
@@ -1679,7 +1679,7 @@ body.ctx-open .bhm {
   border-radius: 9px;
   background: #ef4444;
   color: #fff;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   font-size: .78rem;
   font-weight: 800;
   cursor: pointer;
@@ -1707,7 +1707,7 @@ body.ctx-open .bhm {
   font-weight: 700;
   cursor: pointer;
   transition: all .2s;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif;
   text-align: center
 }
 
@@ -1769,7 +1769,7 @@ body.ctx-open .bhm {
   font-weight: 800;
   padding: .28rem .65rem;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif
 }
 
 .pl-action:hover {
@@ -2426,4 +2426,7 @@ body.ctx-open .bhm {
 
 .tribute-container li span {
   color: var(--t2) !important;
+}
+#msgInput, button, .tribute-container, .rpill, #ctxMenu, .bubble {
+  font-family: 'Nunito', 'Noto Color Emoji', sans-serif !important;
 }

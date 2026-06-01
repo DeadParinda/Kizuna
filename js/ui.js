@@ -80,6 +80,7 @@ window.cancelPaste = cancelPaste;
 
 export function initEmojiMart() {
   state.emojiPickerInst = new EmojiMart.Picker({
+    set: 'native',
     onEmojiSelect: e => insertEmoji(e.native),
     theme: 'dark', previewPosition: 'none', skinTonePosition: 'none',
     navPosition: 'bottom', perLine: 8,
@@ -130,6 +131,7 @@ export function initReactPicker(onSelect) {
   const wrap = document.getElementById('reactPickerWrap');
   wrap.innerHTML = '';
   state.reactPickerInst = new EmojiMart.Picker({
+    set: 'native',
     onEmojiSelect: e => { onSelect(e.native); closeReactPicker(); },
     theme: 'dark', previewPosition: 'none', skinTonePosition: 'none',
     navPosition: 'bottom', perLine: 8,
