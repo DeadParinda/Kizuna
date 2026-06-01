@@ -47,6 +47,9 @@ window.fetchAndCacheProfiles = fetchAndCacheProfiles;
 
 
 function runInit() {
+  document.getElementById('sidebar').classList.toggle('closed', !state.sbOpen);
+  const sbToggle = document.getElementById('sbToggle');
+  if (sbToggle) sbToggle.classList.toggle('act', state.sbOpen);
   if (window.initEmojiMart) window.initEmojiMart();
   if (window.initTribute) window.initTribute();
   if (window.initAuth) window.initAuth();

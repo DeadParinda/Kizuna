@@ -3,7 +3,7 @@ export const state = {
   peers: new Map(), isSuperPeer: false,
   history: [], messages: [],
   replyToMsg: null, ctxTarget: null, editTarget: null, delTarget: null,
-  isAtBot: true, unread: 0, sbOpen: true,
+  isAtBot: true, unread: 0, sbOpen: window.innerWidth > 768,
   pickerOpen: false, plusOpen: false, pickerTab: 'emoji',
   gifTimer: null, typingTimer: null, typingShowTimer: null, saveHistoryTimer: null,
   presenceCh: null, signalCh: null,

@@ -879,8 +879,8 @@ body.ctx-open .bhm {
   background: #1c1c1c;
   border: 1px solid rgba(204, 85, 0, 0.534);
   border-radius: 100px;
-  padding: 2px 7px;
-  font-size: .75rem;
+  padding: 0px 4px;
+  font-size: .85rem;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2427,6 +2427,12 @@ body.ctx-open .bhm {
 .tribute-container li span {
   color: var(--t2) !important;
 }
-#msgInput, button, .tribute-container, .rpill, #ctxMenu, .bubble {
+
+#msgInput,
+button,
+.tribute-container,
+.rpill,
+#ctxMenu,
+.bubble {
   font-family: 'Nunito', 'Noto Color Emoji', sans-serif !important;
 }
