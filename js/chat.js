@@ -134,22 +134,50 @@ window.mkDs = mkDs;
 export function renderMessage(m, isSent, animate = true) {
   const list = document.getElementById('msgList');
   if (document.querySelector(`[data-msg-id="${m.id}"]`)) { updateMsgEl(m); return; }
+  
+  const dateObj = new Date(m.ts);
+  let showHeader = false;
+  if (state.messages.length === 0) {
+    showHeader = true;
+  } else {
+    const lastDate = new Date(state.messages[state.messages.length - 1].ts);
+    if (lastDate.toDateString() !== dateObj.toDateString()) showHeader = true;
+  }
+
+  if (showHeader) {
+    const dateStr = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const isToday = dateObj.toDateString() === new Date().toDateString();
+    const finalDateStr = isToday ? `Today, ${dateStr}` : dateStr;
+    const hd = document.createElement('div');
+    hd.className = 'date-header';
+    hd.innerHTML = `<span>${finalDateStr}</span>`;
+    list.appendChild(hd);
+  }
+
+  // Check if grouped
+  let isGrouped = false;
+  if (state.messages.length > 0 && !showHeader) {
+    const prev = state.messages[state.messages.length - 1];
+    if (prev.senderId === m.senderId && prev.type !== 'system') {
+      isGrouped = true;
+    }
+  }
+
   state.messages.push(m);
   const g = document.createElement('div');
   g.dataset.msgId = m.id; g.dataset.senderId = m.senderId;
-  g.className = `mg ${isSent ? 'sent' : 'recv'}${animate ? ' msg-anim' : ''}`;
-  g.innerHTML = buildMsgHTML(m, isSent);
+  g.className = `mg ${isSent ? 'sent' : 'recv'}${animate ? ' msg-anim' : ''}${isGrouped ? ' grouped' : ''}`;
+  g.innerHTML = buildMsgHTML(m, isSent, isGrouped);
   list.appendChild(g);
   if (!state.isAtBot && !isSent) { state.unread++; updateScrollBtn(); }
   if (state.isAtBot || isSent) scrollBot(animate);
 }
 window.renderMessage = renderMessage;
 
-export function buildMsgHTML(m, isSent) {
+export function buildMsgHTML(m, isSent, isGrouped = false) {
   const { id, senderName, content, type, ts, reactions, replyTo, edited, pending, failed, mediaUrl } = m;
   const avUrl = getDisplayAvatar(m.senderId);
-  console.log(m)
-  const avHTML = `<div class="mav"><img src="${esc(avUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="" onerror="this.style.display='none'"></div>`;
+  const avHTML = `<div class="mav" ${isGrouped ? 'style="visibility:hidden"' : ''}><img src="${esc(avUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="" onerror="this.style.display='none'"></div>`;
   let replyHTML = '';
   if (replyTo) {
     const rt = typeof replyTo === 'object' ? replyTo : null;
@@ -187,9 +215,14 @@ export function buildMsgHTML(m, isSent) {
   </div>`;
   const rHtml = buildReactHTML(id, reactions || {});
   const failHtml = failed ? `<div class="fail-bar"><i class="fas fa-circle-exclamation"></i>Failed <button class="fail-btn" onclick="retrySend('${id}')">Retry</button></div>` : '';
-  const senderLine = !isSent ? `<div class="msender">${esc(senderName)}</div>` : '';
-  const rowAv = !isSent ? avHTML : '';
-  return `${senderLine}<div class="mrow">${rowAv}<div class="msg-content"><div class="bwrap">${bhm}<div class="${bClass}" id="bub${id}" data-msgid="${id}">${replyHTML}${bContent}</div></div><div id="react${id}">${rHtml}</div>${failHtml}<div class="mtime" data-ts="${ts}"><span class="ago-l">${timeAgo(ts)}</span><div class="atip">${fmtFull(ts)}</div></div></div></div>`;
+  
+  if (!isSent) {
+    const formattedTime = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const senderLine = isGrouped ? '' : `<div class="msender">${esc(senderName)} <span class="mtime-inline">${formattedTime}</span></div>`;
+    return `<div class="mrow recv-row">${avHTML}<div class="msg-content" style="min-width:0;flex:1">${senderLine}<div class="bwrap">${bhm}<div class="${bClass}" id="bub${id}" data-msgid="${id}">${replyHTML}${bContent}</div></div><div id="react${id}">${rHtml}</div>${failHtml}</div></div>`;
+  } else {
+    return `<div class="mrow"><div class="msg-content"><div class="bwrap">${bhm}<div class="${bClass}" id="bub${id}" data-msgid="${id}">${replyHTML}${bContent}</div></div><div id="react${id}">${rHtml}</div>${failHtml}<div class="mtime" data-ts="${ts}"><span class="ago-l">${timeAgo(ts)}</span><div class="atip">${fmtFull(ts)}</div></div></div></div>`;
+  }
 }
 window.buildMsgHTML = buildMsgHTML;
 
@@ -206,7 +239,7 @@ export function buildReactHTML(id, reactions) {
 }
 window.buildReactHTML = buildReactHTML;
 
-export function updateMsgEl(m) { const g = document.querySelector(`[data-msg-id="${m.id}"]`); if (!g) return; g.innerHTML = buildMsgHTML(m, m.senderId === state.myId); }
+export function updateMsgEl(m) { const g = document.querySelector(`[data-msg-id="${m.id}"]`); if (!g) return; const isGrouped = g.classList.contains('grouped'); g.innerHTML = buildMsgHTML(m, m.senderId === state.myId, isGrouped); }
 window.updateMsgEl = updateMsgEl;
 
 export function updateMsgMedia(id, url) {

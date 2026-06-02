@@ -586,7 +586,12 @@ em-emoji-picker {
 .mg {
   display: flex;
   flex-direction: column;
-  margin-bottom: .1rem
+  margin-bottom: 0;
+  margin-top: 6px;
+}
+
+.mg:not(.grouped) {
+  margin-top: 14px;
 }
 
 .mg.sent {
@@ -602,6 +607,17 @@ em-emoji-picker {
   align-items: flex-end;
   gap: 6px;
   max-width: 72%
+}
+
+.recv-row {
+  align-items: flex-start !important;
+  max-width: 90% !important;
+}
+
+.recv-row .mav {
+  width: 40px;
+  height: 40px;
+  margin-top: 0;
 }
 
 @media(max-width:580px) {
@@ -648,6 +664,48 @@ em-emoji-picker {
   padding-left: 0
 }
 
+.mg.recv .msender {
+  font-size: .85rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  padding-left: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.mtime-inline {
+  font-size: .65rem;
+  font-weight: 600;
+  color: var(--t3);
+}
+
+.date-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.date-header::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.date-header span {
+  background: var(--bg);
+  padding: 0 16px;
+  font-size: .75rem;
+  font-weight: 800;
+  color: var(--t2);
+  z-index: 2;
+}
+
 .bwrap {
   position: relative;
   display: inline-block;
@@ -680,10 +738,10 @@ body.ctx-open .bhm {
 }
 
 .bubble.recv {
-  background: var(--recv);
+  background: var(--bg3);
   color: var(--text);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 4px
+  border-radius: 16px;
+  /* removing the border-bottom-left-radius override to keep all corners rounded like the image */
 }
 
 .bubble.emo-only {
