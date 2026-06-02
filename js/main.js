@@ -17,9 +17,26 @@ export function handleKey(e) {
     // Tribute is active, let it handle the Enter key.
     return;
   }
+
+  if (e.key === 'Escape') {
+    if (state._pastedFile && window.cancelPaste) {
+      window.cancelPaste();
+    }
+    if (state.replyToMsg && window.clearReply) {
+      window.clearReply();
+    }
+    return;
+  }
+
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    sendMsg();
+    if (state._pastedFile && window.sendPastedImage) {
+      window.sendPastedImage();
+    }
+    const text = document.getElementById('msgInput').value.trim();
+    if (text) {
+      sendMsg();
+    }
   }
 }
 window.handleKey = handleKey;

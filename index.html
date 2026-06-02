@@ -72,7 +72,7 @@
         <div style="font-size:.9rem;font-weight:900;color:var(--text)">Edit Message</div>
       </div>
       <div class="mbody">
-        <textarea class="mta" id="editTa"></textarea>
+        <textarea class="mta" id="editTa" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); commitEdit(); }"></textarea>
         <div class="mactions">
           <button class="mbtn-s" onclick="closeModal('editModal')">Cancel</button>
           <button class="mbtn-p" onclick="commitEdit()"><i class="fas fa-check me-1"></i>Save</button>

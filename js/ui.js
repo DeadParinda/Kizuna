@@ -101,6 +101,14 @@ export function initTribute() {
       try {
         const results = await EmojiMart.SearchIndex.search(text);
         if (results && results.length > 0) {
+          let freqs = {};
+          try { freqs = JSON.parse(localStorage.getItem('emojiFreqs') || '{}'); } catch(err){}
+          results.sort((a, b) => {
+            const freqA = freqs[a.id] || (a.id === 'sob' ? 1 : 0);
+            const freqB = freqs[b.id] || (b.id === 'sob' ? 1 : 0);
+            if (freqA !== freqB) return freqB - freqA;
+            return a.id.length - b.id.length;
+          });
           cb(results.slice(0, 10)); // Limit to 10 for performance/UI
         } else {
           cb([]);
@@ -122,6 +130,12 @@ export function initTribute() {
     tribute.attach(msgInput);
     msgInput.addEventListener('tribute-replaced', function (e) {
       msgInput.dispatchEvent(new Event('input', { bubbles: true }));
+      try {
+        const id = e.detail.item.original.id;
+        let freqs = JSON.parse(localStorage.getItem('emojiFreqs') || '{}');
+        freqs[id] = (freqs[id] || 0) + 1;
+        localStorage.setItem('emojiFreqs', JSON.stringify(freqs));
+      } catch(err) {}
     });
   }
 }
