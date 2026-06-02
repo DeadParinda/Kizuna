@@ -793,13 +793,13 @@ body.ctx-open .bhm {
 
 .bhm {
   position: absolute;
-  top: -42px;
+  top: -38px;
   background: var(--bg2);
   border: 1px solid rgba(204, 85, 0, 0.075);
   border-radius: 100px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   display: none;
-  gap: 4px;
+  gap: 3px;
   z-index: 200;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .5);
   align-items: center;
@@ -824,13 +824,13 @@ body.ctx-open .bhm {
 }
 
 .hbtn {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   background: transparent;
   border: none;
   color: var(--t3);
-  font-size: 1.15rem;
+  font-size: 1.03rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -855,6 +855,23 @@ body.ctx-open .bhm {
 
 .reply-bar:hover {
   background: rgba(255, 107, 0, .13)
+}
+
+.bubble.sent .reply-bar {
+  background: rgba(0, 0, 0, 0.15);
+  border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+.bubble.sent .reply-bar:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.bubble.sent .rb-sender {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bubble.sent .rb-text {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .rb-sender {
