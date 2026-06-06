@@ -233,7 +233,22 @@ export function buildReactHTML(id, reactions) {
     const total = Object.values(users).reduce((a, b) => a + (b || 0), 0);
     if (total <= 0) return;
     const mine = !!(users[state.myId] > 0);
-    out.push(`<div class="rpill${mine ? ' mine' : ''}" onclick="toggleReact('${id}','${emoji}')">${emoji}<span class="rc">${total}</span></div>`);
+    
+    const reactedUserNames = Object.entries(users)
+      .filter(([uid, count]) => count > 0)
+      .map(([uid]) => {
+        if (uid === state.myId) return state.myName;
+        const p = state.peers.get(uid); if (p && p.name) return p.name;
+        const ou = state.onlineUsers.get(uid); if (ou && ou.name) return ou.name;
+        const m = state.history.find(h => h.senderId === uid); if (m) return m.senderName;
+        return 'Someone';
+      });
+      
+    const tooltip = reactedUserNames.join(', ');
+    const safeEmoji = esc(emoji).replace(/'/g, "\\'");
+    const countHtml = total > 1 ? `<span class="rc">${total}</span>` : '';
+    
+    out.push(`<div class="rpill${mine ? ' mine' : ''}" title="${esc(tooltip)}" onclick="toggleReact('${id}','${safeEmoji}')">${esc(emoji)}${countHtml}</div>`);
   });
   return out.length ? `<div class="reacts">${out.join('')}</div>` : '';
 }
@@ -263,6 +278,7 @@ export function toggleReact(id, emoji) {
   m.reactions[emoji][state.myId] = Math.max(0, cur + delta);
   redrawReact(id, m.reactions);
   broadcastExcept(null, { type: 'REACT', msgId: id, emoji, userId: state.myId, delta });
+  debouncedSaveHistory();
 }
 window.toggleReact = toggleReact;
 
@@ -272,6 +288,7 @@ export function applyReaction(id, emoji, userId, delta) {
   if (!m.reactions[emoji]) m.reactions[emoji] = {};
   m.reactions[emoji][userId] = Math.max(0, (m.reactions[emoji][userId] || 0) + delta);
   redrawReact(id, m.reactions);
+  debouncedSaveHistory();
 }
 window.applyReaction = applyReaction;
 

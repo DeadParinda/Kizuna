@@ -654,7 +654,7 @@ em-emoji-picker {
   font-size: .63rem;
   font-weight: 800;
   color: var(--orange);
-  margin-bottom: 2px;
+  margin-bottom: 5px;
   padding-left: 3px
 }
 
@@ -667,7 +667,7 @@ em-emoji-picker {
 .mg.recv .msender {
   font-size: .73rem;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 5px;
   padding-left: 0;
   display: flex;
   align-items: baseline;
