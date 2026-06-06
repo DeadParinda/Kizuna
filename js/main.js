@@ -75,7 +75,13 @@ function runInit() {
   if (window.initPasteHandler) window.initPasteHandler();
 }
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', runInit);
+  document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('click', () => {
+    if (window.Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, { once: true });
+}); document.addEventListener('DOMContentLoaded', runInit);
 } else {
   setTimeout(runInit, 0);
 }

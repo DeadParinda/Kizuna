@@ -1,6 +1,6 @@
 import { state } from './state.js?v=11';
 import { GIPHY_KEY, sb, BASE_TITLE, HISTORY_MAX, AVATAR_CATS } from './config.js?v=11';
-import { avatarForUser, getAvatarUrl, setAvatarCache, getDisplayAvatar, canChangePfp, updateAllAvatarsForUser, avImg, esc, loadPfpCooldown } from './utils.js?v=11';
+import { avatarForUser, getAvatarUrl, setAvatarCache, getDisplayAvatar, canChangePfp, updateAllAvatarsForUser, avImg, esc, loadPfpCooldown, playPing } from './utils.js?v=11';
 import { initiateConnection, broadcastExcept } from './webrtc.js?v=11';
 import { debouncedSaveHistory, broadcastChat, sendMedia, saveHistoryToSupabase, renderMessage, toggleReact, openEdit, openDel, doReply } from './chat.js?v=11';
 import { autoResize, scrollBot } from './main.js?v=11';
@@ -16,9 +16,17 @@ export function updateTitle() {
 }
 window.updateTitle = updateTitle;
 
-export function notifyNewMessage(m) {
-  // ignore own state.messages and when tab is focused
-  if (!state.myId || m.senderId === state.myId || state.isTabFocused) return;
+export function notifyNewMessage(m, force = false) {
+  // ignore own state.messages
+  if (!state.myId || m.senderId === state.myId) return;
+  const isMentioned = m.type === 'text' && m.content && m.content.includes('@' + state.myName);
+  if (state.isTabFocused && !force && !isMentioned) return;
+
+  playPing();
+  if (window.Notification && Notification.permission === 'granted') {
+    const text = m.type === 'text' ? m.content : `[${m.type}]`;
+    new Notification(m.senderName || 'New Message', { body: text });
+  }
 
   // is it a reply to one of MY state.messages?
   if (m.replyTo) {
@@ -92,37 +100,63 @@ window.initEmojiMart = initEmojiMart;
 export function initTribute() {
   if (typeof Tribute === 'undefined' || typeof EmojiMart === 'undefined') return;
   const tribute = new Tribute({
-    trigger: ':',
-    requireLeadingSpace: true,
-    lookup: 'id',
-    fillAttr: 'native',
-    values: async function (text, cb) {
-      if (!text) return cb([]);
-      try {
-        const results = await EmojiMart.SearchIndex.search(text);
-        if (results && results.length > 0) {
-          let freqs = {};
-          try { freqs = JSON.parse(localStorage.getItem('emojiFreqs') || '{}'); } catch(err){}
-          results.sort((a, b) => {
-            const freqA = freqs[a.id] || (a.id === 'sob' ? 1 : 0);
-            const freqB = freqs[b.id] || (b.id === 'sob' ? 1 : 0);
-            if (freqA !== freqB) return freqB - freqA;
-            return a.id.length - b.id.length;
-          });
-          cb(results.slice(0, 10)); // Limit to 10 for performance/UI
-        } else {
-          cb([]);
+    collection: [
+      {
+        trigger: ':',
+        requireLeadingSpace: true,
+        lookup: 'id',
+        fillAttr: 'native',
+        values: async function (text, cb) {
+          if (!text) return cb([]);
+          try {
+            const results = await EmojiMart.SearchIndex.search(text);
+            if (results && results.length > 0) {
+              let freqs = {};
+              try { freqs = JSON.parse(localStorage.getItem('emojiFreqs') || '{}'); } catch(err){}
+              results.sort((a, b) => {
+                const freqA = freqs[a.id] || (a.id === 'sob' ? 1 : 0);
+                const freqB = freqs[b.id] || (b.id === 'sob' ? 1 : 0);
+                if (freqA !== freqB) return freqB - freqA;
+                return a.id.length - b.id.length;
+              });
+              cb(results.slice(0, 10)); // Limit to 10 for performance/UI
+            } else {
+              cb([]);
+            }
+          } catch (e) { cb([]); }
+        },
+        selectTemplate: function (item) {
+          if (typeof item === 'undefined') return null;
+          return item.original.skins ? item.original.skins[0].native : item.original.native;
+        },
+        menuItemTemplate: function (item) {
+          const native = item.original.skins ? item.original.skins[0].native : item.original.native;
+          return `<span style="font-size: 1.2rem; margin-right: 8px;">${native}</span><span>:${item.original.id}:</span>`;
         }
-      } catch (e) { cb([]); }
-    },
-    selectTemplate: function (item) {
-      if (typeof item === 'undefined') return null;
-      return item.original.skins ? item.original.skins[0].native : item.original.native;
-    },
-    menuItemTemplate: function (item) {
-      const native = item.original.skins ? item.original.skins[0].native : item.original.native;
-      return `<span style="font-size: 1.2rem; margin-right: 8px;">${native}</span><span>:${item.original.id}:</span>`;
-    }
+      },
+      {
+        trigger: '@',
+        requireLeadingSpace: true,
+        lookup: 'name',
+        fillAttr: 'name',
+        values: async function(text, cb) {
+          try {
+            // Search all registered users
+            let query = sb.from('kizuna_profiles').select('name').limit(15);
+            if (text) query = query.ilike('name', `%${text}%`);
+            const { data } = await query;
+            cb(data || []);
+          } catch (e) { cb([]); }
+        },
+        selectTemplate: function (item) {
+          if (typeof item === 'undefined') return null;
+          return '@' + item.original.name;
+        },
+        menuItemTemplate: function (item) {
+          return `<span>@${item.original.name}</span>`;
+        }
+      }
+    ]
   });
 
   const msgInput = document.getElementById('msgInput');

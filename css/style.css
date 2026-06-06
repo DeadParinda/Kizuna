@@ -753,6 +753,35 @@ body.ctx-open .bhm {
   box-shadow: none !important
 }
 
+.bubble code {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--orange);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.bubble.recv code {
+  background: rgba(255, 255, 255, 0.1);
+}
+.bubble del {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.mention {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.my-mention {
+  background: rgba(255, 165, 0, 0.3);
+  color: var(--orange);
+}
+
 .bubble.img-bub {
   padding: 3px;
   background: transparent !important;

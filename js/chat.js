@@ -1,6 +1,6 @@
 import { state } from './state.js?v=11';
 import { sb, HISTORY_MAX, TYPING_DEBOUNCE, CHUNK_SIZE, LS_MESSAGES, LS_MEDIA, SB_TABLE_HIST } from './config.js?v=11';
-import { avatarForUser, getDisplayAvatar, avImg, timeAgo, fmtFull, esc, arrayBufToB64, b64toBlob } from './utils.js?v=11';
+import { avatarForUser, getDisplayAvatar, avImg, timeAgo, fmtFull, esc, arrayBufToB64, b64toBlob, parseMarkdown } from './utils.js?v=11';
 import { dcSend, broadcastExcept } from './webrtc.js?v=11';
 import { showReactPicker, openLB, openModal, closeModal, showToast, closeAll, closeCtxMenu, jumpTo, doCopy } from './ui.js?v=11';
 import { autoResize, scrollBot, updateScrollBtn, fetchAndCacheProfiles } from './main.js?v=11';
@@ -199,7 +199,7 @@ export function buildMsgHTML(m, isSent, isGrouped = false) {
 
     if (displayText && isEmoOnly(displayText)) bClass += ' emo-only';
 
-    bContent = (displayText ? esc(displayText) : '') + buildLinkPreviewHTML(previews);
+    bContent = (displayText ? parseMarkdown(esc(displayText), state.myName) : '') + buildLinkPreviewHTML(previews);
   }
   if (edited) bContent += `<i class="fas fa-pen edited-mark"></i>`;
   if (pending) bContent += `<i class="fas fa-clock pending-mark" title="Sending…"></i>`;

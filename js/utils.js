@@ -51,6 +51,50 @@ export function calcPfpCooldown(iso){
 }
 window.calcPfpCooldown = calcPfpCooldown;
 
+export function parseMarkdown(text, myName) {
+  if (!text) return '';
+  let res = text
+    // Code blocks: `code`
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Bold: **text**
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Italic: *text* or _text_
+    .replace(/(^|[^\w*])\*([^*]+)\*(?=[^\w*]|$)/g, '$1<em>$2</em>')
+    .replace(/(^|[^\w_])_([^_]+)_(?=[^\w_]|$)/g, '$1<em>$2</em>')
+    // Strikethrough: ~~text~~
+    .replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+  // Mentions
+  if (myName) {
+    res = res.replace(new RegExp(`@(${myName})\\b`, 'gi'), '<span class="mention my-mention">@$1</span>');
+  }
+  res = res.replace(/@([A-Za-z0-9_]+)/g, (match, p1) => {
+    if (myName && p1.toLowerCase() === myName.toLowerCase()) return match; // already handled
+    return `<span class="mention">@${p1}</span>`;
+  });
+  
+  return res;
+}
+
+export function playPing() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+window.playPing = playPing;
+
 export async function loadPfpCooldown(){
   const {data}=await sb
     .from('kizuna_profiles')
