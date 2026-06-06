@@ -457,6 +457,10 @@ export function renderSidebar() {
     const div = document.createElement('div'); div.className = 'sb-user';
     const p2p = state.peers.has(uid) && state.peers.get(uid).status === 'connected';
     div.innerHTML = `<div class="sb-av-w"><div class="sb-av"><img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="" onerror="this.style.display='none'"></div><div class="sb-dot"></div></div><div class="sb-info"><div class="sb-name">${esc(u.name)}${uid === state.myId ? ' <span class="sb-badge">you</span>' : ''}${u.isSuper ? ' <span class="sb-badge">SUPER</span>' : ''}</div><div class="sb-status">${uid === state.myId ? 'Online' : p2p ? 'P2P Connected' : 'Signaling'}</div></div>`;
+    if (uid === state.myId) {
+      div.style.cursor = 'pointer';
+      div.onclick = openProfileModal;
+    }
     list.appendChild(div);
   });
 }

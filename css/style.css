@@ -605,7 +605,7 @@ em-emoji-picker {
 .mrow {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
+  gap: 9px;
   max-width: 72%
 }
 
@@ -617,7 +617,7 @@ em-emoji-picker {
 .recv-row .mav {
   width: 40px;
   height: 40px;
-  margin-top: 0;
+  margin-top: -12px;
 }
 
 @media(max-width:580px) {
@@ -691,7 +691,8 @@ em-emoji-picker {
 .date-header::before {
   content: '';
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   height: 1px;
   background: var(--border);
   z-index: 1;
