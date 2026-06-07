@@ -205,14 +205,14 @@ export function buildMsgHTML(m, isSent, isGrouped = false) {
   if (pending) bContent += `<i class="fas fa-clock pending-mark" title="Sending…"></i>`;
   const editBtn = isSent && type === 'text' ? `<button class="hbtn" onclick="openEdit('${id}')" title="Edit"><i class="fas fa-pen"></i></button>` : '';
   const delBtn = isSent ? `<button class="hbtn" onclick="openDel('${id}')" title="Delete"><i class="fas fa-trash" style="color:#ef4444"></i></button>` : '';
-  const bhm = `<div class="bhm">
+  const bhm = `<div class="bhm-wrap"><div class="bhm">
     <button class="hbtn" onclick="toggleReact('${id}','👍')" title="React">👍</button>
     <button class="hbtn" onclick="toggleReact('${id}','❤️')" title="React">❤️</button>
     <button class="hbtn" onclick="toggleReact('${id}','😂')" title="React">😂</button>
     <button class="hbtn" onclick="showReactPicker(event,'${id}')" title="More Reactions"><i class="fas fa-plus"></i></button>
     <button class="hbtn" onclick="doReply('${id}')" title="Reply"><i class="fas fa-reply"></i></button>
     ${editBtn}${delBtn}
-  </div>`;
+  </div></div>`;
   const rHtml = buildReactHTML(id, reactions || {});
   const failHtml = failed ? `<div class="fail-bar"><i class="fas fa-circle-exclamation"></i>Failed <button class="fail-btn" onclick="retrySend('${id}')">Retry</button></div>` : '';
   

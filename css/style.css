@@ -13,7 +13,7 @@
   --text: #f0ede8;
   --t2: #8a8078;
   --t3: #5a5550;
-  --sent: linear-gradient(135deg, #b33c00, #ff6b00);
+  --sent: linear-gradient(135deg, #bd4103, #ff6b00);
   --recv: #1c1c1c;
   --shadow: 0 8px 32px rgba(0, 0, 0, .65);
 }
@@ -761,9 +761,11 @@ body.ctx-open .bhm {
   font-family: monospace;
   font-size: 0.9em;
 }
+
 .bubble.recv code {
   background: rgba(255, 255, 255, 0.1);
 }
+
 .bubble del {
   color: inherit;
   opacity: 0.7;
@@ -777,6 +779,7 @@ body.ctx-open .bhm {
   font-weight: 600;
   cursor: pointer;
 }
+
 .my-mention {
   background: rgba(255, 165, 0, 0.3);
   color: var(--orange);
@@ -821,19 +824,27 @@ body.ctx-open .bhm {
   margin-left: 3px
 }
 
-.bhm {
+.bhm-wrap {
   position: absolute;
   top: -38px;
+  min-width: 100%;
+  display: flex;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.bhm {
   background: var(--bg2);
   border: 1px solid rgba(204, 85, 0, 0.075);
   border-radius: 100px;
   padding: 3px 6px;
   display: none;
   gap: 3px;
-  z-index: 200;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .5);
   align-items: center;
-  white-space: nowrap
+  white-space: nowrap;
+  pointer-events: auto;
+  position: relative;
 }
 
 .bhm::after {
@@ -842,15 +853,17 @@ body.ctx-open .bhm {
   top: 100%;
   left: -30px;
   right: -30px;
-  height: 35px
+  height: 35px;
 }
 
-.mg.sent .bhm {
-  right: 0
+.mg.sent .bhm-wrap {
+  right: 0;
+  justify-content: flex-start;
 }
 
-.mg.recv .bhm {
-  left: 0
+.mg.recv .bhm-wrap {
+  left: 0;
+  justify-content: flex-end;
 }
 
 .hbtn {
