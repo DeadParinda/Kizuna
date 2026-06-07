@@ -137,23 +137,33 @@ export function initTribute() {
       {
         trigger: '@',
         requireLeadingSpace: true,
-        lookup: 'name',
-        fillAttr: 'name',
-        values: async function(text, cb) {
-          try {
-            // Search all registered users
-            let query = sb.from('kizuna_profiles').select('name').limit(15);
-            if (text) query = query.ilike('name', `%${text}%`);
-            const { data } = await query;
-            cb(data || []);
-          } catch (e) { cb([]); }
+        lookup: 'key',
+        fillAttr: 'key',
+        values: function(text, cb) {
+          const matched = [];
+          const query = (text || '').toLowerCase();
+          
+          const addUsers = (map) => {
+            map.forEach((u, uid) => {
+              if (u.name && u.name.toLowerCase().includes(query)) {
+                if (!matched.some(m => m.value === uid)) {
+                  matched.push({ key: u.name, value: uid });
+                }
+              }
+            });
+          };
+
+          addUsers(state.onlineUsers);
+          addUsers(state.peers);
+
+          cb(matched);
         },
         selectTemplate: function (item) {
           if (typeof item === 'undefined') return null;
-          return '@' + item.original.name;
+          return '@' + item.original.key;
         },
         menuItemTemplate: function (item) {
-          return `<span>@${item.original.name}</span>`;
+          return `<span>@${item.original.key}</span>`;
         }
       }
     ]

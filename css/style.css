@@ -785,6 +785,12 @@ body.ctx-open .bhm {
   color: var(--orange);
 }
 
+.bubble.mentioned-bubble {
+  border: 1px solid var(--orange);
+  background: rgba(255, 107, 0, 0.1);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.15) inset;
+}
+
 .bubble.img-bub {
   padding: 3px;
   background: transparent !important;

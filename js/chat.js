@@ -199,6 +199,9 @@ export function buildMsgHTML(m, isSent, isGrouped = false) {
 
     if (displayText && isEmoOnly(displayText)) bClass += ' emo-only';
 
+    const isMentioned = !isSent && state.myName && displayText && new RegExp(`@${regEsc(state.myName)}\\b`, 'i').test(displayText);
+    if (isMentioned) bClass += ' mentioned-bubble';
+
     bContent = (displayText ? parseMarkdown(esc(displayText), state.myName) : '') + buildLinkPreviewHTML(previews);
   }
   if (edited) bContent += `<i class="fas fa-pen edited-mark"></i>`;
