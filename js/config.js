@@ -21,26 +21,32 @@ window.BASE_TITLE = BASE_TITLE;
 export const ICE_CFG = {
   iceServers: [
     // STUN — direct connection attempt first
+    { urls: 'stun:stun.cloudflare.com:3478' },
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
 
     // TURN — fallback relay when direct fails
     {
       urls: [
-        'turn:openrelay.metered.ca:80',
-        'turn:openrelay.metered.ca:443',
+        // 1. Strict TLS over 443 (Bypasses strict corporate DPI firewalls for PC)
+        'turns:openrelay.metered.ca:443?transport=tcp',
+        
+        // 2. Standard TCP over 443 (Fallback for networks blocking UDP)
         'turn:openrelay.metered.ca:443?transport=tcp',
-        'turns:openrelay.metered.ca:443'
+        
+        // 3. UDP over 443 and 80 (Standard fallbacks often used by mobile networks)
+        'turn:openrelay.metered.ca:443',
+        'turn:openrelay.metered.ca:80'
       ],
       username: 'openrelayproject',
       credential: 'openrelayproject'
     }
   ],
   iceCandidatePoolSize: 10,
-  iceTransportPolicy: 'all'   // normal
+  iceTransportPolicy: 'all'   // Keeps both STUN and TURN active
 };
 window.ICE_CFG = ICE_CFG;
+
 
 export const HISTORY_MAX     = 80;
 window.HISTORY_MAX = HISTORY_MAX;
