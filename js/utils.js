@@ -137,3 +137,23 @@ window.getAvatarFromCache = getAvatarFromCache;
 export const avImg=src=>`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="" onerror="this.style.display='none'">`;
 window.avImg = avImg;
 
+export async function compressImage(file, maxDim = 1920, quality = 0.8) {
+  const bmp = await createImageBitmap(file);
+  let w = bmp.width;
+  let h = bmp.height;
+
+  if (w > maxDim || h > maxDim) {
+    const ratio = Math.min(maxDim / w, maxDim / h);
+    w = Math.round(w * ratio);
+    h = Math.round(h * ratio);
+  }
+
+  const canvas = new OffscreenCanvas(w, h);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0, w, h);
+  
+  return await canvas.convertToBlob({ type: 'image/webp', quality });
+}
+window.compressImage = compressImage;

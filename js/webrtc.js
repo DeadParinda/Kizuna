@@ -1,5 +1,5 @@
 import { state } from './state.js?v=11';
-import { sb, ICE_CFG, HISTORY_MAX, SP_THRESH, LS_MEDIA } from './config.js?v=11';
+import { sb, ICE_CFG, HISTORY_MAX, SP_THRESH, LS_MEDIA, CHUNK_SIZE } from './config.js?v=11';
 import { setAvatarCache, updateAllAvatarsForUser, b64toBlob } from './utils.js?v=11';
 import { notifyNewMessage, renderSidebar, updateConnQuality, updateCounts, sysMsg } from './ui.js?v=11';
 import { saveHistoryToSupabase, mergeHistory, renderMessage, updateMsgMedia, applyReaction, applyEdit, applyDelete, showTypingFor } from './chat.js?v=11';
@@ -199,6 +199,22 @@ export function handleDCMsg(fromId,msg){
       renderMessage(m,false);
       notifyNewMessage(m);
       broadcastExcept(fromId,{type:'CHAT',message:m});
+      break;
+    }
+    case 'MEDIA_REQ': {
+      const ref = msg.ref;
+      if (!ref) break;
+      try {
+        const s = localStorage.getItem(LS_MEDIA + ref);
+        if (s) {
+          const { b64, mime } = JSON.parse(s);
+          const chunks = [];
+          for (let i = 0; i < b64.length; i += CHUNK_SIZE) chunks.push(b64.slice(i, i + CHUNK_SIZE));
+          
+          dcSend(fromId, { type: 'MEDIA_META', id: ref, mimeType: mime, totalChunks: chunks.length, senderId: state.myId, senderName: state.myName, ts: Date.now() });
+          chunks.forEach((c, idx) => dcSend(fromId, { type: 'MEDIA_CHUNK', id: ref, index: idx, data: c }));
+        }
+      } catch (_) {}
       break;
     }
     case 'MEDIA_META':{

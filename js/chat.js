@@ -1,6 +1,6 @@
 import { state } from './state.js?v=11';
 import { sb, HISTORY_MAX, TYPING_DEBOUNCE, CHUNK_SIZE, LS_MESSAGES, LS_MEDIA, SB_TABLE_HIST } from './config.js?v=11';
-import { avatarForUser, getDisplayAvatar, avImg, timeAgo, fmtFull, esc, arrayBufToB64, b64toBlob, parseMarkdown } from './utils.js?v=11';
+import { avatarForUser, getDisplayAvatar, avImg, timeAgo, fmtFull, esc, arrayBufToB64, b64toBlob, parseMarkdown, compressImage } from './utils.js?v=11';
 import { dcSend, broadcastExcept } from './webrtc.js?v=11';
 import { showReactPicker, openLB, openModal, closeModal, showToast, closeAll, closeCtxMenu, jumpTo, doCopy } from './ui.js?v=11';
 import { autoResize, scrollBot, updateScrollBtn, fetchAndCacheProfiles } from './main.js?v=11';
@@ -11,7 +11,7 @@ export async function sendMsg() {
   const rd = state.replyToMsg ? { ...state.replyToMsg } : null;
   clearReply(); inp.value = ''; autoResize(inp); closeAll();
   const m = { id: crypto.randomUUID(), senderId: state.myId, senderName: state.myName, content: text, type: 'text', ts: Date.now(), reactions: {}, replyTo: rd, edited: false };
-  state.history.push(m); if (state.history.length > HISTORY_MAX) state.history.shift();
+  state.history.push(m); if (state.history.length > HISTORY_MAX) { const dropped = state.history.shift(); if (dropped.mediaRef) removeMediaStorage(dropped.mediaRef); }
   renderMessage(m, true);
   if (!broadcastChat(m)) setPending(m.id, true);
   debouncedSaveHistory();
@@ -35,17 +35,24 @@ export function broadcastChat(m) {
 }
 window.broadcastChat = broadcastChat;
 
+export function removeMediaStorage(ref) { try { localStorage.removeItem(LS_MEDIA + ref); } catch (_) { } }
+window.removeMediaStorage = removeMediaStorage;
+
 export async function sendMedia(file) {
   const id = crypto.randomUUID();
-  const buf = await file.arrayBuffer();
+  let processFile = file;
+  if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+    processFile = await compressImage(file);
+  }
+  const buf = await processFile.arrayBuffer();
   const b64 = arrayBufToB64(buf);
   const chunks = [];
   for (let i = 0; i < b64.length; i += CHUNK_SIZE)chunks.push(b64.slice(i, i + CHUNK_SIZE));
-  try { localStorage.setItem(LS_MEDIA + id, JSON.stringify({ b64, mime: file.type })); } catch (_) { }
-  const url = URL.createObjectURL(new Blob([buf], { type: file.type }));
+  try { localStorage.setItem(LS_MEDIA + id, JSON.stringify({ b64, mime: processFile.type })); } catch (_) { }
+  const url = URL.createObjectURL(new Blob([buf], { type: processFile.type }));
   const ts = Date.now();
   const m = { id, senderId: state.myId, senderName: state.myName, content: '', type: 'image', ts, reactions: {}, replyTo: null, edited: false, mediaUrl: url, mediaRef: id };
-  state.history.push(m); if (state.history.length > HISTORY_MAX) state.history.shift();
+  state.history.push(m); if (state.history.length > HISTORY_MAX) { const dropped = state.history.shift(); if (dropped.mediaRef) removeMediaStorage(dropped.mediaRef); }
   renderMessage(m, true); debouncedSaveHistory();
   setTimeout(() => updateMsgMedia(id, url), 100);
   state.peers.forEach((_, pid) => {
@@ -112,13 +119,19 @@ export function mergeHistory(incoming) {
     if (!state.history.find(h => h.id === m.id)) {
       if (m.mediaRef) { try { const s = localStorage.getItem(LS_MEDIA + m.mediaRef); if (s) { const { b64, mime } = JSON.parse(s); m.mediaUrl = URL.createObjectURL(b64toBlob(b64, mime)); } } catch (_) { } }
       state.history.push(m);
+      if (!m.mediaUrl && m.type === 'image' && m.mediaRef) {
+        setTimeout(() => requestMediaFromPeers(m.mediaRef), 1500);
+      }
     }
   });
   // Fetch avatars for all senders in state.history
   const senderIds = [...new Set(state.history.map(m => m.senderId).filter(id => id && id !== state.myId))];
   fetchAndCacheProfiles(senderIds);
   state.history.sort((a, b) => a.ts - b.ts);
-  if (state.history.length > HISTORY_MAX) state.history.splice(0, state.history.length - HISTORY_MAX);
+  if (state.history.length > HISTORY_MAX) {
+    const removedMsgs = state.history.splice(0, state.history.length - HISTORY_MAX);
+    removedMsgs.forEach(rm => { if (rm.mediaRef) removeMediaStorage(rm.mediaRef); });
+  }
   document.getElementById('msgList').innerHTML = ''; state.messages = [];
   state.history.forEach(m => renderMessage(m, m.senderId === state.myId));
 }
@@ -130,6 +143,15 @@ export function mkDs(icon, label) {
   return d;
 }
 window.mkDs = mkDs;
+
+export function requestMediaFromPeers(ref) {
+  if (state.peers.size === 0) return;
+  if (!state.requestedMedia) state.requestedMedia = new Set();
+  if (state.requestedMedia.has(ref)) return;
+  state.requestedMedia.add(ref);
+  broadcastExcept(null, { type: 'MEDIA_REQ', ref });
+}
+window.requestMediaFromPeers = requestMediaFromPeers;
 
 export function renderMessage(m, isSent, animate = true) {
   const list = document.getElementById('msgList');
@@ -313,7 +335,7 @@ window.openDel = openDel;
 export function commitDel() { if (!state.delTarget) return; applyDelete(state.delTarget); broadcastExcept(null, { type: 'DELETE', msgId: state.delTarget }); closeModal('delModal'); state.delTarget = null; showToast('Deleted'); }
 window.commitDel = commitDel;
 
-export function applyDelete(id) { state.history = state.history.filter(h => h.id !== id); state.messages = state.messages.filter(mm => mm.id !== id); const g = document.querySelector(`[data-msg-id="${id}"]`); if (g) { g.style.transition = 'opacity .22s,transform .22s'; g.style.opacity = '0'; g.style.transform = 'scale(.96)'; setTimeout(() => g.remove(), 230); } }
+export function applyDelete(id) { const dm = state.history.find(h => h.id === id); if (dm && dm.mediaRef) removeMediaStorage(dm.mediaRef); state.history = state.history.filter(h => h.id !== id); state.messages = state.messages.filter(mm => mm.id !== id); const g = document.querySelector(`[data-msg-id="${id}"]`); if (g) { g.style.transition = 'opacity .22s,transform .22s'; g.style.opacity = '0'; g.style.transform = 'scale(.96)'; setTimeout(() => g.remove(), 230); } }
 window.applyDelete = applyDelete;
 
 export function retrySend(id) { const m = state.history.find(h => h.id === id); if (!m) return; m.failed = false; m.pending = true; updateMsgEl(m); const ok = broadcastChat(m); if (!ok) { m.failed = true; m.pending = false; updateMsgEl(m); } else { m.pending = false; updateMsgEl(m); } }
