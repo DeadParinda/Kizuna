@@ -16,15 +16,25 @@ export function switchAuthTab(tab){
 window.switchAuthTab = switchAuthTab;
 
 export async function initAuth(){
+  document.getElementById('loginScreen').style.display='none';
   setSBStatus('warn','Connecting…');
   const {data:{session}}=await sb.auth.getSession();
   if(session){await enterApp(session.user);return;}
+  document.getElementById('loginScreen').style.display='';
   setSBStatus('ok','Ready');
+  dismissSplash();
   sb.auth.onAuthStateChange(async(event,session)=>{
     if(event==='SIGNED_IN'&&session) await enterApp(session.user);
   });
 }
 window.initAuth = initAuth;
+
+function dismissSplash(){
+  const s=document.getElementById('splashScreen');
+  if(!s)return;
+  s.classList.add('fade-out');
+  setTimeout(()=>s.classList.add('hidden'),460);
+}
 
 export async function doSignup(){
   const name=document.getElementById('signupName').value.trim();
@@ -90,6 +100,7 @@ export async function enterApp(user){
   setupPresence(); setupSignaling();
   sysMsg('You joined #'+state.myRoom);
   updateSBBar(); setSBStatus('ok','Connected');
+  dismissSplash();
 }
 window.enterApp = enterApp;
 

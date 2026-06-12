@@ -51,7 +51,7 @@ window.notifyNewMessage = notifyNewMessage;
 export function initPasteHandler() {
   document.addEventListener('paste', e => {
     // Only when app is visible
-    if (document.getElementById('loginScreen').classList.contains('hide') === false) return;
+    if (document.getElementById('loginScreen').style.display !== 'none') return;
     const items = [...(e.clipboardData?.items || [])];
     const imgItem = items.find(it => it.type.startsWith('image/'));
     if (!imgItem) return;
