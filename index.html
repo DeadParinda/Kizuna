@@ -160,10 +160,12 @@
             <div id="profileAvatarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px"></div>
           </div>
         </div>
-        <div class="mactions" style="margin-top:.75rem">
-          <button class="mbtn-s" onclick="closeModal('profileModal')">Cancel</button>
-          <button class="mbtn-p" id="profileSaveBtn" onclick="saveProfile()"><i
-              class="fas fa-check me-1"></i>Save</button>
+        <div class="mactions" style="margin-top:.75rem; justify-content: space-between; align-items: flex-end;">
+          <button style="background:transparent; border:none; color:var(--t3); font-size:.7rem; cursor:pointer; text-decoration:underline; padding:0; transition:color 0.2s ease; margin-bottom: 2px;" onclick="doSignOut()" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--t3)'">Sign out</button>
+          <div style="display:flex; gap:8px;">
+            <button class="mbtn-s" onclick="closeModal('profileModal')">Cancel</button>
+            <button class="mbtn-p" id="profileSaveBtn" onclick="saveProfile()"><i class="fas fa-check me-1"></i>Save</button>
+          </div>
         </div>
       </div>
     </div>

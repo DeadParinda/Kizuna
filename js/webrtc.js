@@ -250,16 +250,19 @@ export function handleDCMsg(fromId,msg){
       showTypingFor(msg.userId||fromId,msg.name,msg.avatarUrl);
       break;
     case 'REACT':
-      applyReaction(msg.msgId,msg.emoji,msg.userId,msg.delta);
-      broadcastExcept(fromId,{type:'REACT',...msg});
+      if (applyReaction(msg.msgId,msg.emoji,msg.userId,msg.value)) {
+        broadcastExcept(fromId,{type:'REACT',...msg});
+      }
       break;
     case 'EDIT':
-      applyEdit(msg.msgId,msg.newContent);
-      broadcastExcept(fromId,{type:'EDIT',msgId:msg.msgId,newContent:msg.newContent});
+      if (applyEdit(msg.msgId,msg.newContent)) {
+        broadcastExcept(fromId,{type:'EDIT',msgId:msg.msgId,newContent:msg.newContent});
+      }
       break;
     case 'DELETE':
-      applyDelete(msg.msgId);
-      broadcastExcept(fromId,{type:'DELETE',msgId:msg.msgId});
+      if (applyDelete(msg.msgId)) {
+        broadcastExcept(fromId,{type:'DELETE',msgId:msg.msgId});
+      }
       break;
     case 'SUPERPEER_UPDATE': if(p)p.isSuper=msg.isSuper;renderSidebar(); break;
     case 'PROFILE_UPDATE':

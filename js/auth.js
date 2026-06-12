@@ -93,3 +93,10 @@ export async function enterApp(user){
 }
 window.enterApp = enterApp;
 
+export async function doSignOut() {
+  const btn = document.querySelector('button[onclick="doSignOut()"]');
+  if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Signing out...'; }
+  await sb.auth.signOut();
+  window.location.reload();
+}
+window.doSignOut = doSignOut;

@@ -1698,7 +1698,8 @@ body.ctx-open .bhm {
   overflow: hidden;
   width: 90%;
   max-width: 360px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--pop-bo);
+  `n box-shadow: var(--shadow);
   animation: popIn .3s cubic-bezier(.4, 0, .2, 1)
 }
 
@@ -2000,7 +2001,8 @@ body.ctx-open .bhm {
   transition: all .22s;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, .5)
+  border: 1px solid var(--pop-bo);
+  `n box-shadow: 0 4px 18px rgba(0, 0, 0, .5)
 }
 
 #toast.show {

@@ -295,26 +295,29 @@ export function setPending(id, val) { const m = state.history.find(h => h.id ===
 window.setPending = setPending;
 
 export function toggleReact(id, emoji) {
-  const m = state.history.find(h => h.id === id); if (!m) return;
-  if (!m.reactions) m.reactions = {};
-  if (!m.reactions[emoji]) m.reactions[emoji] = {};
-  const cur = m.reactions[emoji][state.myId] || 0;
-  const delta = cur > 0 ? -1 : 1;
-  m.reactions[emoji][state.myId] = Math.max(0, cur + delta);
-  redrawReact(id, m.reactions);
-  broadcastExcept(null, { type: 'REACT', msgId: id, emoji, userId: state.myId, delta });
-  debouncedSaveHistory();
-}
+    const m = state.history.find(h => h.id === id); if (!m) return;
+    if (!m.reactions) m.reactions = {};
+    if (!m.reactions[emoji]) m.reactions[emoji] = {};
+    const cur = m.reactions[emoji][state.myId] || 0;
+    const val = cur > 0 ? 0 : 1;
+    m.reactions[emoji][state.myId] = val;
+    redrawReact(id, m.reactions);
+    broadcastExcept(null, { type: 'REACT', msgId: id, emoji, userId: state.myId, value: val });
+    debouncedSaveHistory();
+  }
 window.toggleReact = toggleReact;
 
-export function applyReaction(id, emoji, userId, delta) {
-  const m = state.history.find(h => h.id === id); if (!m) return;
-  if (!m.reactions) m.reactions = {};
-  if (!m.reactions[emoji]) m.reactions[emoji] = {};
-  m.reactions[emoji][userId] = Math.max(0, (m.reactions[emoji][userId] || 0) + delta);
-  redrawReact(id, m.reactions);
-  debouncedSaveHistory();
-}
+export function applyReaction(id, emoji, userId, value) {
+    const m = state.history.find(h => h.id === id); if (!m) return false;
+    if (!m.reactions) m.reactions = {};
+    if (!m.reactions[emoji]) m.reactions[emoji] = {};
+    const cur = m.reactions[emoji][userId] || 0;
+    if (cur === value) return false;
+    m.reactions[emoji][userId] = value;
+    redrawReact(id, m.reactions);
+    debouncedSaveHistory();
+    return true;
+  }
 window.applyReaction = applyReaction;
 
 export function redrawReact(id, r) { const el = document.getElementById('react' + id); if (!el) return; el.innerHTML = buildReactHTML(id, r); }
@@ -326,7 +329,7 @@ window.openEdit = openEdit;
 export function commitEdit() { if (!state.editTarget) return; const m = state.history.find(h => h.id === state.editTarget); if (!m) return; const nc = document.getElementById('editTa').value.trim(); if (!nc) { closeModal('editModal'); return; } m.content = nc; m.edited = true; updateMsgEl(m); broadcastExcept(null, { type: 'EDIT', msgId: state.editTarget, newContent: nc }); closeModal('editModal'); state.editTarget = null; showToast('Edited'); }
 window.commitEdit = commitEdit;
 
-export function applyEdit(id, nc) { const m = state.history.find(h => h.id === id); if (!m) return; m.content = nc; m.edited = true; updateMsgEl(m); }
+export function applyEdit(id, nc) { const m = state.history.find(h => h.id === id); if (!m || m.content === nc) return false; m.content = nc; m.edited = true; updateMsgEl(m); return true; }
 window.applyEdit = applyEdit;
 
 export function openDel(id) { const m = state.history.find(h => h.id === id); if (!m) return; state.delTarget = id; document.getElementById('delPreview').textContent = (m.content || '[media]').slice(0, 100); openModal('delModal'); closeCtxMenu(); }
@@ -335,7 +338,7 @@ window.openDel = openDel;
 export function commitDel() { if (!state.delTarget) return; applyDelete(state.delTarget); broadcastExcept(null, { type: 'DELETE', msgId: state.delTarget }); closeModal('delModal'); state.delTarget = null; showToast('Deleted'); }
 window.commitDel = commitDel;
 
-export function applyDelete(id) { const dm = state.history.find(h => h.id === id); if (dm && dm.mediaRef) removeMediaStorage(dm.mediaRef); state.history = state.history.filter(h => h.id !== id); state.messages = state.messages.filter(mm => mm.id !== id); const g = document.querySelector(`[data-msg-id="${id}"]`); if (g) { g.style.transition = 'opacity .22s,transform .22s'; g.style.opacity = '0'; g.style.transform = 'scale(.96)'; setTimeout(() => g.remove(), 230); } }
+export function applyDelete(id) { const idx = state.history.findIndex(h => h.id === id); if (idx === -1) return false; const dm = state.history[idx]; if (dm && dm.mediaRef) removeMediaStorage(dm.mediaRef); state.history.splice(idx, 1); state.messages = state.messages.filter(mm => mm.id !== id); const g = document.querySelector(`[data-msg-id="${id}"]`); if (g) { g.style.transition = 'opacity .22s,transform .22s'; g.style.opacity = '0'; g.style.transform = 'scale(.96)'; setTimeout(() => g.remove(), 230); } return true; }
 window.applyDelete = applyDelete;
 
 export function retrySend(id) { const m = state.history.find(h => h.id === id); if (!m) return; m.failed = false; m.pending = true; updateMsgEl(m); const ok = broadcastChat(m); if (!ok) { m.failed = true; m.pending = false; updateMsgEl(m); } else { m.pending = false; updateMsgEl(m); } }
